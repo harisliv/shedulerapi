@@ -1,0 +1,24 @@
+# Fix for Apache AUTHORIZATION http header as it is stripped by default for security and should be
+# enabled explicity when needed
+SetEnvIf Authorization .+ HTTP_AUTHORIZATION=$0
+
+
+Options -Indexes
+
+RewriteEngine On    # Turn on the rewriting engine
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# Authentication
+RewriteRule    ^sessions/([0-9]+)$          controller/sessions.php?sessionid=$1    [L]    # Handle session id requests
+RewriteRule    ^sessions$      controller/sessions.php      [L]    # Handle login requests
+
+# Tasks
+RewriteRule    ^tasks/([0-9]+)$          controller/task.php?taskid=$1    [L]    # Handle task id requests
+RewriteRule    ^tasks/complete$          controller/task.php?completed=Y     [L]    # Handle task get complete status requests
+RewriteRule    ^tasks/incomplete$        controller/task.php?completed=N    [L]    # Handle task get incomplete status requests
+RewriteRule    ^tasks/page/([0-9]+)$     controller/task.php?page=$1    [L]    # Handle page requests
+RewriteRule    ^tasks$                   controller/task.php     [L]    # Handle task requests
+
+# Users
+RewriteRule    ^users$      controller/users.php      [L]    # Handle user requests

@@ -5,6 +5,14 @@ require_once('../model/task.php');
 require_once('../model/response.php');
 require_once('../functions/readwritedb.php');
 require_once('../functions/authtoken.php');
+require_once('../functions/createnewtask.php');
+require_once('../functions/deletesingletask.php');
+require_once('../functions/getalltasks.php');
+require_once('../functions/getcompletedtasks.php');
+require_once('../functions/getpagetasks.php');
+require_once('../functions/getsingletask.php');
+require_once('../functions/readwritedb.php');
+require_once('../functions/updatesingletask.php');
 
 // attempt to set up connections to read and write db connections
 ReadWriteDB();
