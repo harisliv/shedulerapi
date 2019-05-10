@@ -1,5 +1,9 @@
 <?php
-function ReadWriteDB() {
+function ReadWriteDB()
+require_once('../controller/db.php');
+require_once('../model/response.php');
+
+{
 // attempt to set up connections to read and write db connections
 try {
   $writeDB = DB::connectWriteDB();

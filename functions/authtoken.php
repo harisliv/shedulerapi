@@ -1,6 +1,22 @@
 <?php
+require_once('../controller/db.php');
+require_once('../model/response.php');
+require_once('../model/task.php');
 function AuthToken() {
-
+  try {
+    $writeDB = DB::connectWriteDB();
+    $readDB = DB::connectReadDB();
+  }
+  catch(PDOException $ex) {
+    // log connection error for troubleshooting and return a json error response
+    error_log("Connection Error: ".$ex, 0);
+    $response = new Response();
+    $response->setHttpStatusCode(500);
+    $response->setSuccess(false);
+    $response->addMessage("Database connection error");
+    $response->send();
+    exit;
+  }
 // Authenticate user with access token
 // check to see if access token is provided in the HTTP Authorization header and that the value is longer than 0 chars
 // don't forget the Apache fix in .htaccess file

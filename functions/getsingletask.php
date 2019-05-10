@@ -1,5 +1,24 @@
 <?php
+
+require_once('../controller/db.php');
+require_once('../model/response.php');
+require_once('../model/task.php');
+
 function getSingleTask() {
+  try {
+    $writeDB = DB::connectWriteDB();
+    $readDB = DB::connectReadDB();
+  }
+  catch(PDOException $ex) {
+    // log connection error for troubleshooting and return a json error response
+    error_log("Connection Error: ".$ex, 0);
+    $response = new Response();
+    $response->setHttpStatusCode(500);
+    $response->setSuccess(false);
+    $response->addMessage("Database connection error");
+    $response->send();
+    exit;
+  }
 try {
   // create db query
   // ADD AUTH TO QUERY

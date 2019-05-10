@@ -5,6 +5,9 @@ require_once('../model/response.php');
 require_once('../functions/deletesession.php');
 require_once('../functions/createsession.php');
 require_once('../functions/updatesession.php');
+//ini_set('display_errors', 1);
+//ini_set('display_startup_errors', 1);
+//error_reporting(E_ALL);
 
 // note: never cache login or token http requests/responses
 // (our response model defaults to no cache unless specifically set)

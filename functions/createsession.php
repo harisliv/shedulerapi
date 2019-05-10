@@ -1,5 +1,26 @@
 <?php
+require_once('../controller/db.php');
+require_once('../model/response.php');
+
+
+
 function createSession() {
+
+  try {
+
+    $writeDB = DB::connectWriteDB();
+
+  }
+  catch(PDOException $ex) {
+    // log connection error for troubleshooting and return a json error response
+    error_log("Connection Error: ".$ex, 0);
+    $response = new Response();
+    $response->setHttpStatusCode(500);
+    $response->setSuccess(false);
+    $response->addMessage("Database connection error");
+    $response->send();
+    exit;
+  }
 
 if($_SERVER['REQUEST_METHOD'] !== 'POST') {
   $response = new Response();
