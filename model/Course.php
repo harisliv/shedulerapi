@@ -1,4 +1,8 @@
 <?php
+//error_reporting(0);
+
+//header('Content-Type: text/html; charset=utf-8');
+
 
   class CourseException extends Exception { }
 
@@ -38,16 +42,16 @@
     //public function getIdUser() {return $this->_userid;}
 
     public function setID($id) {
-      if(($id !== null) && (!is_numeric($id) || $id <= 0 || $id > 2147483647 || $this->_id !== null)){
+      if(strlen($id) < 0 || strlen($id) > 150){
         throw new CourseException("Course ID error");
       }
         $this->_id = $id;
     }
 
     public function setName($name) {
-      if(strlen($name) < 0 || strlen($name) > 150){
-        throw new CourseException("Course Name error");
-      }
+      //if(strlen($name) < 0 || strlen($name) > 150){
+      //  throw new CourseException("Course Name error");
+      //}
       $this->_name=$name;
     }
 
@@ -60,9 +64,9 @@
 
 
     public function setPeriod($period) {
-      if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E' && $period !== '-'){
-        throw new CourseException("Course period must by X or E or 0");
-      }
+      //if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E' && $period !== '-'){
+      //  throw new CourseException("Course period must by X or E or 0");
+      //}
       $this->_period=$period;
     }
 

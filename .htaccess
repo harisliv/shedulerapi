@@ -14,7 +14,7 @@ RewriteRule    ^sessions/([0-9]+)$          controller/sessions.php?sessionid=$1
 RewriteRule    ^sessions$      controller/sessions.php      [L]    # Handle login requests
 
 # Tasks
-RewriteRule    ^courses/([0-9]+)$          controller/course.php?courseid=$1    [L]    # Handle course id requests
+RewriteRule    ^courses/([0-9a-zA-Z-]+)$          controller/course.php?courseid=$1    [L]    # Handle course id requests
 RewriteRule    ^tasks/complete$          controller/task.php?completed=Y     [L]    # Handle task get complete status requests
 RewriteRule    ^tasks/incomplete$        controller/task.php?completed=N    [L]    # Handle task get incomplete status requests
 RewriteRule    ^tasks/page/([0-9]+)$     controller/task.php?page=$1    [L]    # Handle page requests
