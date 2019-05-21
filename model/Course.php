@@ -80,7 +80,7 @@
 
     public function setHoursTheory($hours_theory) {
       if(($hours_theory !== null) && (!is_numeric($hours_theory) || $hours_theory < 0 || $hours_theory > 9 || $this->_hours_theory !== null)){
-        throw new CourseException("Course ID error");
+        throw new CourseException("HOURS THEORY error");
       }
         $this->_hours_theory = $hours_theory;
     }

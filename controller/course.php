@@ -7,7 +7,7 @@ require_once('../model/response.php');
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-error_reporting(0);
+//error_reporting(0);
 
 
 // attempt to set up connections to read and write db connections
@@ -153,7 +153,7 @@ if (array_key_exists("courseid",$_GET)) {
         $response = new Response();
         $response->setHttpStatusCode(404);
         $response->setSuccess(false);
-        $response->addMessage("Task not found");
+        $response->addMessage("Course not found");
         $response->send();
         exit;
       }
@@ -201,7 +201,361 @@ if (array_key_exists("courseid",$_GET)) {
     }
   }
   // else if request if a DELETE e.g. delete task
+  elseif($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    // attempt to query the database
+    try {
+      // ADD AUTH TO QUERY
+      // create db query
+      $query = $writeDB->prepare('delete from course_list where id = :courseid and userid = :userid');
+      $query->bindParam(':courseid', $courseid, PDO::PARAM_INT);
+      $query->bindParam(':userid', $returned_userid, PDO::PARAM_INT);
+      $query->execute();
 
+      // get row count
+      $rowCount = $query->rowCount();
+
+      if($rowCount === 0) {
+        // set up response for unsuccessful return
+        $response = new Response();
+        $response->setHttpStatusCode(404);
+        $response->setSuccess(false);
+        $response->addMessage("Course not found");
+        $response->send();
+        exit;
+      }
+      // set up response for successful return
+      $response = new Response();
+      $response->setHttpStatusCode(200);
+      $response->setSuccess(true);
+      $response->addMessage("Course deleted");
+      $response->send();
+      exit;
+    }
+    // if error with sql query return a json error
+    catch(PDOException $ex) {
+      $response = new Response();
+      $response->setHttpStatusCode(500);
+      $response->setSuccess(false);
+      $response->addMessage("Failed to delete task");
+      $response->send();
+      exit;
+    }
+  }
+  // handle updating task
+  elseif($_SERVER['REQUEST_METHOD'] === 'PATCH') {
+    // update task
+    try {
+      // check request's content type header is JSON
+      if($_SERVER['CONTENT_TYPE'] !== 'application/json') {
+        // set up response for unsuccessful request
+        $response = new Response();
+        $response->setHttpStatusCode(400);
+        $response->setSuccess(false);
+        $response->addMessage("Content Type header not set to JSON");
+        $response->send();
+        exit;
+      }
+
+      // get PATCH request body as the PATCHed data will be JSON format
+      $rawPatchData = file_get_contents('php://input');
+
+      if(!$jsonData = json_decode($rawPatchData)) {
+        // set up response for unsuccessful request
+        $response = new Response();
+        $response->setHttpStatusCode(400);
+        $response->setSuccess(false);
+        $response->addMessage("Request body is not valid JSON");
+        $response->send();
+        exit;
+      }
+
+      // set task field updated to false initially
+      //$id_updated = false;
+      $name_updated = false;
+      $curr_updated = false;
+      $period_updated = false;
+      $active_updated = false;
+      $hours_theory_updated = false;
+      $hours_lab_updated = false;
+      $hours_practice_updated = false;
+
+
+      // create blank query fields string to append each field to
+      $queryFields = "";
+
+      // check if title exists in PATCH
+      /*if(isset($jsonData->id)) {
+        // set title field updated to true
+        $id_updated = true;
+        // add title field to query field string
+        $queryFields .= "id = :courseid, ";
+      }*/
+
+      // check if description exists in PATCH
+      if(isset($jsonData->name)) {
+        // set description field updated to true
+        $name_updated = true;
+        // add description field to query field string
+        $queryFields .= "name = :name, ";
+      }
+
+      // check if completed exists in PATCH
+      if(isset($jsonData->curr)) {
+        // set completed field updated to true
+        $curr_updated = true;
+        // add completed field to query field string
+        $queryFields .= "curr = :curr, ";
+      }
+
+      // check if title exists in PATCH
+      if(isset($jsonData->period)) {
+        // set title field updated to true
+        $period_updated = true;
+        // add title field to query field string
+        $queryFields .= "period = :period, ";
+      }
+
+      // check if description exists in PATCH
+      if(isset($jsonData->active)) {
+        // set description field updated to true
+        $active_updated = true;
+        // add description field to query field string
+        $queryFields .= "active = :active, ";
+      }
+
+      // check if completed exists in PATCH
+      if(isset($jsonData->hours_theory)) {
+        // set completed field updated to true
+        $hours_theory_updated = true;
+        // add completed field to query field string
+        $queryFields .= "hours_theory = :hours_theory, ";
+      }
+
+      // check if completed exists in PATCH
+      if(isset($jsonData->hours_lab)) {
+        // set completed field updated to true
+        $hours_lab_updated = true;
+        // add completed field to query field string
+        $queryFields .= "hours_lab = :hours_lab, ";
+      }
+
+      // check if completed exists in PATCH
+      if(isset($jsonData->hours_practice)) {
+        // set completed field updated to true
+        $hours_practice_updated = true;
+        // add completed field to query field string
+        $queryFields .= "hours_practice = :hours_practice, ";
+      }
+
+      // remove the right hand comma and trailing space
+      $queryFields = rtrim($queryFields, ", ");
+
+      // check if any task fields supplied in JSON
+      if($name_updated === false && $curr_updated === false && $period_updated === false && $active_updated === false && $hours_theory_updated === false && $hours_lab_updated === false && $hours_practice_updated === false) {
+        $response = new Response();
+        $response->setHttpStatusCode(400);
+        $response->setSuccess(false);
+        $response->addMessage("No task fields provided");
+        $response->send();
+        exit;
+      }
+      // ADD AUTH TO QUERY
+      // create db query to get task from database to update - use master db
+      $query = $writeDB->prepare('SELECT id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :courseid and userid = :userid');
+      $query->bindParam(':courseid', $courseid, PDO::PARAM_STR);
+      $query->bindParam(':userid', $returned_userid, PDO::PARAM_INT);
+  		$query->execute();
+
+      // get row count
+      $rowCount = $query->rowCount();
+
+      // make sure that the task exists for a given task id
+      if($rowCount === 0) {
+        // set up response for unsuccessful return
+        $response = new Response();
+        $response->setHttpStatusCode(404);
+        $response->setSuccess(false);
+        $response->addMessage("No task found to update");
+        $response->send();
+        exit;
+      }
+
+      // for each row returned - should be just one
+      while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+        // create new task object
+        $course = new Course($row['id'], $row['name'], $row['curr'], $row['period'], $row['active'], $row['hours_theory'], $row['hours_lab'], $row['hours_practice']);
+
+        // create task and store in array for return in json data
+  	    $courseArray[] = $course->returnCourseAsArray();
+      }
+
+      // ADD AUTH TO QUERY
+      // create the query string including any query fields
+      $queryString = "update course_list set ".$queryFields." where id = :courseid and userid = :userid";
+      // prepare the query
+      $query = $writeDB->prepare($queryString);
+
+      // if title has been provided
+      /*if($id_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setID($jsonData->id);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_id = $course->getID();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':courseid', $up_id, PDO::PARAM_STR);
+      }*/
+
+      // if title has been provided
+      if($name_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setName($jsonData->name);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_name = $course->getName();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':name', $up_name, PDO::PARAM_STR);
+      }
+
+      // if title has been provided
+      if($curr_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setCurr($jsonData->curr);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_curr = $course->getCurr();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':curr', $up_curr, PDO::PARAM_STR);
+      }
+
+      // if title has been provided
+      if($period_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setPeriod($jsonData->period);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_period = $course->getPeriod();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':period', $up_period, PDO::PARAM_STR);
+      }
+
+      // if title has been provided
+      if($hours_theory_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setHoursTheory($jsonData->hours_theory);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_hours_theory = $course->getHoursTheory();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':hours_theory', $up_hours_theory, PDO::PARAM_INT);
+      }
+
+      // if title has been provided
+      if($hours_lab_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setHoursLab($jsonData->hours_lab);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_hours_lab = $course->getHoursLab();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':hours_lab', $up_hours_lab, PDO::PARAM_INT);
+      }
+
+      // if title has been provided
+      if($hours_practice_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setHoursPractice($jsonData->hours_practice);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_hours_practice = $course->getHoursPractice();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':hours_practice', $up_hours_practice, PDO::PARAM_INT);
+      }
+
+      // bind the task id provided in the query string
+      $query->bindParam(':courseid', $courseid, PDO::PARAM_STR);
+      // bind the user id returned
+      $query->bindParam(':userid', $returned_userid, PDO::PARAM_INT);
+      // run the query
+    	$query->execute();
+
+      // get affected row count
+      $rowCount = $query->rowCount();
+
+      // check if row was actually updated, could be that the given values are the same as the stored values
+      if($rowCount === 0) {
+        // set up response for unsuccessful return
+        $response = new Response();
+        $response->setHttpStatusCode(400);
+        $response->setSuccess(false);
+        $response->addMessage("Course not updated - given values may be the same as the stored values");
+        $response->send();
+        exit;
+      }
+      // ADD AUTH TO QUERY
+      // create db query to return the newly edited task - connect to master database
+      $query = $writeDB->prepare('SELECT id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :courseid and userid = :userid');
+      $query->bindParam(':courseid', $courseid, PDO::PARAM_INT);
+      $query->bindParam(':userid', $returned_userid, PDO::PARAM_INT);
+  		$query->execute();
+
+      // get row count
+      $rowCount = $query->rowCount();
+
+      // check if task was found
+      if($rowCount === 0) {
+        // set up response for unsuccessful return
+        $response = new Response();
+        $response->setHttpStatusCode(404);
+        $response->setSuccess(false);
+        $response->addMessage("No course found");
+        $response->send();
+        exit;
+      }
+      // create task array to store returned tasks
+      $courseArray = array();
+
+      // for each row returned
+      while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+        // create new task object
+        $course = new Course($row['id'], $row['name'], $row['curr'], $row['period'], $row['active'], $row['hours_theory'], $row['hours_lab'], $row['hours_practice']);
+
+        // create task and store in array for return in json data
+  	    $courseArray[] = $course->returnCourseAsArray();
+      }
+      // bundle tasks and rows returned into an array to return in the json data
+      $returnData = array();
+      $returnData['rows_returned'] = $rowCount;
+      $returnData['courses'] = $courseArray;
+
+      // set up response for successful return
+      $response = new Response();
+      $response->setHttpStatusCode(200);
+      $response->setSuccess(true);
+      $response->addMessage("Course updated");
+      $response->setData($returnData);
+      $response->send();
+      exit;
+    }
+    catch(TaskException $ex) {
+      $response = new Response();
+      $response->setHttpStatusCode(400);
+      $response->setSuccess(false);
+      $response->addMessage($ex->getMessage());
+      $response->send();
+      exit;
+    }
+    // if error with sql query return a json error
+    catch(PDOException $ex) {
+      error_log("Database Query Error: ".$ex, 0);
+      $response = new Response();
+      $response->setHttpStatusCode(500);
+      $response->setSuccess(false);
+      $response->addMessage("Failed to update task - check your data for errors");
+      $response->send();
+      exit;
+    }
+  }
 
   // if any other request method apart from GET, PATCH, DELETE is used then return 405 method not allowed
   else {
