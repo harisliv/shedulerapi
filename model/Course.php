@@ -64,9 +64,9 @@
 
 
     public function setPeriod($period) {
-      //if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E' && $period !== '-'){
-      //  throw new CourseException("Course period must by X or E or 0");
-      //}
+      if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E' && $period !== '-'){
+        throw new CourseException("Course period must by X or E or 0");
+      }
       $this->_period=$period;
     }
 
@@ -79,32 +79,28 @@
     }
 
     public function setHoursTheory($hours_theory) {
-      if(($hours_theory !== null) && (!is_numeric($hours_theory) || $hours_theory < 0 || $hours_theory > 9 || $this->_hours_theory !== null)){
+      if(($hours_theory !== null) && (!is_numeric($hours_theory) || $hours_theory < 0 || $hours_theory > 9 ))
+      {
         throw new CourseException("HOURS THEORY error");
       }
         $this->_hours_theory = $hours_theory;
     }
 
     public function setHoursLab($hours_lab) {
-      if(($hours_lab !== null) && (!is_numeric($hours_lab) || $hours_lab < 0 || $hours_lab > 9 || $this->_hours_lab !== null)){
+      if(($hours_lab !== null) && (!is_numeric($hours_lab) || $hours_lab < 0 || $hours_lab > 9)){
         throw new CourseException("Course ID error");
       }
         $this->_hours_lab = $hours_lab;
     }
 
     public function setHoursPractice($hours_practice) {
-      if(($hours_practice !== null) && (!is_numeric($hours_practice) || $hours_practice < 0 || $hours_practice > 9 || $this->_hours_practice !== null)){
+      if(($hours_practice !== null) && (!is_numeric($hours_practice) || $hours_practice < 0 || $hours_practice > 9)){
         throw new CourseException("Course ID error");
       }
         $this->_hours_practice = $hours_practice;
     }
 
-    /*public function setIdUser($userid) {
-      if(($userid !== null) && (!is_numeric($userid) || $userid <= 0 || $userid  > 2147483647 || $this->_userid !== null)){
-        throw new CourseException("Course ID error");
-      }
-        $this->_userid = $userid;
-    }*/
+    
 
     public function returnCourseAsArray() {
       $course = array();

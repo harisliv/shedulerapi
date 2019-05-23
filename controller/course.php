@@ -7,7 +7,7 @@ require_once('../model/response.php');
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-//error_reporting(0);
+error_reporting(0);
 
 
 // attempt to set up connections to read and write db connections
@@ -396,17 +396,6 @@ if (array_key_exists("courseid",$_GET)) {
       $query = $writeDB->prepare($queryString);
 
       // if title has been provided
-      /*if($id_updated === true) {
-        // set task object title to given value (checks for valid input)
-        $course->setID($jsonData->id);
-        // get the value back as the object could be handling the return of the value differently to
-        // what was provided
-        $up_id = $course->getID();
-        // bind the parameter of the new value from the object to the query (prevents SQL injection)
-        $query->bindParam(':courseid', $up_id, PDO::PARAM_STR);
-      }*/
-
-      // if title has been provided
       if($name_updated === true) {
         // set task object title to given value (checks for valid input)
         $course->setName($jsonData->name);
@@ -437,6 +426,17 @@ if (array_key_exists("courseid",$_GET)) {
         $up_period = $course->getPeriod();
         // bind the parameter of the new value from the object to the query (prevents SQL injection)
         $query->bindParam(':period', $up_period, PDO::PARAM_STR);
+      }
+
+      // if title has been provided
+      if($active_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setActive($jsonData->active);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_active = $course->getActive();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':active', $up_active, PDO::PARAM_STR);
       }
 
       // if title has been provided
