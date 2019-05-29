@@ -4,9 +4,9 @@
 require_once('db.php');
 require_once('../model/course.php');
 require_once('../model/response.php');
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+//ini_set('display_errors', 1);
+//ini_set('display_startup_errors', 1);
+//error_reporting(E_ALL);
 //error_reporting(0);
 
 
@@ -138,7 +138,7 @@ if (array_key_exists("courseid",$_GET)) {
       // create db query
       // ADD AUTH TO QUERY
       $query = $readDB->prepare('SELECT id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :courseid and userid = :userid');
-      $query->bindParam(':courseid', $courseid, PDO::PARAM_INT);
+      $query->bindParam(':courseid', $courseid, PDO::PARAM_STR);
       $query->bindParam(':userid', $returned_userid, PDO::PARAM_INT);
   		$query->execute();
 
@@ -207,7 +207,7 @@ if (array_key_exists("courseid",$_GET)) {
       // ADD AUTH TO QUERY
       // create db query
       $query = $writeDB->prepare('delete from course_list where id = :courseid and userid = :userid');
-      $query->bindParam(':courseid', $courseid, PDO::PARAM_INT);
+      $query->bindParam(':courseid', $courseid, PDO::PARAM_STR);
       $query->bindParam(':userid', $returned_userid, PDO::PARAM_INT);
       $query->execute();
 
@@ -396,17 +396,6 @@ if (array_key_exists("courseid",$_GET)) {
       $query = $writeDB->prepare($queryString);
 
       // if title has been provided
-      /*if($id_updated === true) {
-        // set task object title to given value (checks for valid input)
-        $course->setID($jsonData->id);
-        // get the value back as the object could be handling the return of the value differently to
-        // what was provided
-        $up_id = $course->getID();
-        // bind the parameter of the new value from the object to the query (prevents SQL injection)
-        $query->bindParam(':courseid', $up_id, PDO::PARAM_STR);
-      }*/
-
-      // if title has been provided
       if($name_updated === true) {
         // set task object title to given value (checks for valid input)
         $course->setName($jsonData->name);
@@ -495,7 +484,7 @@ if (array_key_exists("courseid",$_GET)) {
       // ADD AUTH TO QUERY
       // create db query to return the newly edited task - connect to master database
       $query = $writeDB->prepare('SELECT id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :courseid and userid = :userid');
-      $query->bindParam(':courseid', $courseid, PDO::PARAM_INT);
+      $query->bindParam(':courseid', $courseid, PDO::PARAM_STR);
       $query->bindParam(':userid', $returned_userid, PDO::PARAM_INT);
   		$query->execute();
 
