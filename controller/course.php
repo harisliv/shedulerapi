@@ -4,10 +4,17 @@
 require_once('db.php');
 require_once('../model/course.php');
 require_once('../model/response.php');
+<<<<<<< HEAD
 //ini_set('display_errors', 1);
 //ini_set('display_startup_errors', 1);
 //error_reporting(E_ALL);
 //error_reporting(0);
+=======
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+error_reporting(0);
+>>>>>>> 28467565ded96cff30e33ea09a3de503eacf9470
 
 
 // attempt to set up connections to read and write db connections
@@ -426,6 +433,17 @@ if (array_key_exists("courseid",$_GET)) {
         $up_period = $course->getPeriod();
         // bind the parameter of the new value from the object to the query (prevents SQL injection)
         $query->bindParam(':period', $up_period, PDO::PARAM_STR);
+      }
+
+      // if title has been provided
+      if($active_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $course->setActive($jsonData->active);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_active = $course->getActive();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':active', $up_active, PDO::PARAM_STR);
       }
 
       // if title has been provided
