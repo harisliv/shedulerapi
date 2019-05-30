@@ -1,8 +1,5 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-//error_reporting(0);
+
 
 //header('Content-Type: text/html; charset=utf-8');
 
@@ -52,9 +49,9 @@ error_reporting(E_ALL);
     }
 
     public function setName($name) {
-      //if(strlen($name) < 0 || strlen($name) > 150){
-      //  throw new CourseException("Course Name error");
-      //}
+      if(strlen($name) < 0 || strlen($name) > 150){
+        throw new CourseException("Course Name error");
+      }
       $this->_name=$name;
     }
 
@@ -67,7 +64,7 @@ error_reporting(E_ALL);
 
 
     public function setPeriod($period) {
-      if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E' && $period !== '-'){
+      if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E'&& $period !== '-'){
         throw new CourseException("Course period must by X or E or 0");
       }
       $this->_period=$period;
@@ -75,7 +72,7 @@ error_reporting(E_ALL);
 
 
     public function setActive($active) {
-      if(strtoupper($active) !== 'N' && strtoupper($active) !== 'Y'){
+      if(strtoupper($active) !== 'N' && strtoupper($active) !== 'Y' ){
         throw new CourseException("Course active must by Y or N");
       }
       $this->_active=$active;
@@ -103,7 +100,7 @@ error_reporting(E_ALL);
         $this->_hours_practice = $hours_practice;
     }
 
-    
+
 
     public function returnCourseAsArray() {
       $course = array();

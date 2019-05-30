@@ -4,17 +4,7 @@
 require_once('db.php');
 require_once('../model/course.php');
 require_once('../model/response.php');
-<<<<<<< HEAD
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
-//error_reporting(0);
-=======
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-error_reporting(0);
->>>>>>> 28467565ded96cff30e33ea09a3de503eacf9470
+
 
 
 // attempt to set up connections to read and write db connections
@@ -289,14 +279,6 @@ if (array_key_exists("courseid",$_GET)) {
 
       // create blank query fields string to append each field to
       $queryFields = "";
-
-      // check if title exists in PATCH
-      /*if(isset($jsonData->id)) {
-        // set title field updated to true
-        $id_updated = true;
-        // add title field to query field string
-        $queryFields .= "id = :courseid, ";
-      }*/
 
       // check if description exists in PATCH
       if(isset($jsonData->name)) {
@@ -667,13 +649,15 @@ elseif(empty($_GET)) {
       }
 
       // check if post request contains title and completed data in body as these are mandatory
-      if(!isset($jsonData->id) || !isset($jsonData->name) || !isset($jsonData->curr) || !isset($jsonData->hours_theory) || !isset($jsonData->hours_lab) || !isset($jsonData->hours_practice)) {
+      if(!isset($jsonData->id) || !isset($jsonData->name) || !isset($jsonData->curr) || !isset($jsonData->period) || !isset($jsonData->active) || !isset($jsonData->hours_theory) || !isset($jsonData->hours_lab) || !isset($jsonData->hours_practice)) {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
         (!isset($jsonData->title) ? $response->addMessage("ID field is mandatory and must be provided") : false);
         (!isset($jsonData->name) ? $response->addMessage("Name field is mandatory and must be provided") : false);
         (!isset($jsonData->curr) ? $response->addMessage("Programma spoudwn field is mandatory and must be provided") : false);
+        (!isset($jsonData->period) ? $response->addMessage("Period field is mandatory and must be provided") : false);
+        (!isset($jsonData->active) ? $response->addMessage("active field is mandatory and must be provided") : false);
         (!isset($jsonData->hours_theory) ? $response->addMessage("hours_theory field is mandatory and must be provided") : false);
         (!isset($jsonData->hours_lab) ? $response->addMessage("hours_lab field is mandatory and must be provided") : false);
         (!isset($jsonData->hours_practice) ? $response->addMessage("hours_practice field is mandatory and must be provided") : false);
