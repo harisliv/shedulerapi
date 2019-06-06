@@ -255,12 +255,14 @@
       }
     }
 
-    elseif (array_key_exists("day",$_GET)) {
+    elseif (array_key_exists("day",$_GET) && array_key_exists("start_time",$_GET)) {
       // get task id from query string
       $day = $_GET['day'];
+      $start_time = $_GET['start_time'];
+
 
       //check to see if task id in query string is not empty and is number, if not return json error
-      if($day !== 'de') {
+      if($day !== 'te') {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
@@ -275,18 +277,21 @@
         try {
           // create db query
           // ADD AUTH TO QUERY
-          $query = $readDB->prepare('SELECT id, start_time, day, id_acadsem from time_slots where day = :day');
+          $query = $readDB->prepare('SELECT id, start_time, day, id_acadsem from time_slots where start_time = :start_time and day = :day');
           $query->bindParam(':day', $day, PDO::PARAM_STR);
+          $query->bindParam(':start_time', $start_time, PDO::PARAM_INT);
       		$query->execute();
           $roomArray = array();
           $rowCount_new = 0;
+          $availableyes = "Y";
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-            echo "time_slot " . $row['id'] . "<br>";
-            $query_new = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id_ts = :id_ts');
+            //echo "time_slot " . $row['id'] . "<br>";
+            $query_new = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id_ts = :id_ts and available = :available');
             $query_new->bindParam(':id_ts', $row['id'], PDO::PARAM_INT);
+            $query_new->bindParam(':available', $availableyes, PDO::PARAM_INT);
             $query_new->execute();
             $rowCount_new += $query_new->rowCount();
-            echo "rowcount " . $rowCount_new . "<br>";
+            //echo "rowcount " . $rowCount_new . "<br>";
 
             if($rowCount_new === 0) {
               // set up response for unsuccessful return
@@ -301,12 +306,13 @@
             // for each row returned
             while($row_new = $query_new->fetch(PDO::FETCH_ASSOC)) {
               // create new task object for each row
-              echo "room avail " . $row_new['id'] . "<br>";
+              //echo "room avail " . $row_new['available'] . "<br>";
 
               $room = new Room($row_new['id'], $row_new['id_room'], $row_new['id_ts'], $row_new['id_acadsem'], $row_new['available']);
-
               // create task and store in array for return in json data
+
         	    $roomArray[] = $room->returnRoomAsArray();
+
             }
 
           }

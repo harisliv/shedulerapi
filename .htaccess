@@ -16,7 +16,7 @@ RewriteRule    ^sessions$      controller/sessions.php      [L]    # Handle logi
 # Tasks
 RewriteRule    ^courses/([0-9a-zA-Z-]+)$          controller/course.php?courseid=$1    [L]    # Handle course id requests
 RewriteRule    ^rooms/available$          controller/room.php?available=Y     [L]    # Handle task get complete status requests
-RewriteRule    ^rooms/deftera$          controller/room.php?day=de     [L]    # Handle task get complete status requests
+RewriteRule    ^rooms/tetarti/8$          controller/room.php?day=te&start_time=8     [L]    # Handle task get complete status requests
 RewriteRule    ^tasks/incomplete$        controller/task.php?completed=N    [L]    # Handle task get incomplete status requests
 RewriteRule    ^tasks/page/([0-9]+)$     controller/task.php?page=$1    [L]    # Handle page requests
 RewriteRule    ^courses$                   controller/course.php     [L]    # Handle task requests
