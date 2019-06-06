@@ -32,10 +32,11 @@
       }
 
       public function setLektikoRoom($lektiko_room) {
-        //if(strlen($lektiko_room) < 0 || strlen($lektiko_room) > 1255){
-        //  throw new RoomException("_lektiko_room error");
-          $this->_lektiko_room = $lektiko_room;
-        //}
+        if(strlen($lektiko_room) < 0 || strlen($lektiko_room) > 255){
+          throw new RoomException("_lektiko_room error");
+        }
+        $this->_lektiko_room = $lektiko_room;
+
     }
 
       public function setRoomCode($room_code) {

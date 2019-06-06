@@ -22,6 +22,7 @@ RewriteRule    ^tasks/page/([0-9]+)$     controller/task.php?page=$1    [L]    #
 RewriteRule    ^courses$                   controller/course.php     [L]    # Handle task requests
 RewriteRule    ^room_avail$                   controller/room_avail.php     [L]    # Handle room_avail requests
 RewriteRule    ^rooms$                   controller/room.php     [L]    # Handle room_avail requests
+RewriteRule    ^timeslots$                   controller/timeslot.php     [L]    # Handle room_avail requests
 
 # Users
 RewriteRule    ^users$      controller/users.php      [L]    # Handle user requests
