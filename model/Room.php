@@ -3,7 +3,7 @@
   ini_set('display_errors', 1);
   ini_set('display_startup_errors', 1);
   error_reporting(E_ALL);
-  //error_reporting(0);
+  error_reporting(0);
 
     class RoomException extends Exception { }
 
@@ -32,12 +32,10 @@
       }
 
       public function setLektikoRoom($lektiko_room) {
-        if(strlen($lektiko_room) < 0 || strlen($lektiko_room) > 255){
-        {
-          throw new RoomException("Room ID error");
-        }
+        //if(strlen($lektiko_room) < 0 || strlen($lektiko_room) > 1255){
+        //  throw new RoomException("_lektiko_room error");
           $this->_lektiko_room = $lektiko_room;
-      }
+        //}
     }
 
       public function setRoomCode($room_code) {

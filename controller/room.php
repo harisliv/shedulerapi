@@ -7,7 +7,7 @@
   ini_set('display_errors', 1);
   ini_set('display_startup_errors', 1);
   error_reporting(E_ALL);
-  //error_reporting(0);
+  error_reporting(0);
 
   // attempt to set up connections to read and write db connections
   try {
@@ -122,7 +122,7 @@
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new room object for each row
-            echo "<br>" . $row['lektiko_room'];
+            //echo "<br>" . $row['lektiko_room'];
             $room = new Room($row['id'], $row['lektiko_room'], $row['room_code']);
 
             // create room and store in array for return in json data
