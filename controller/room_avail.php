@@ -149,7 +149,7 @@
           // create new task with data, if non mandatory fields not provided then set to null
           $newRoom_avail = new Room_avail(null, $jsonData->id_room, $jsonData->id_ts, $jsonData->id_acadsem, $jsonData->available);
           // get title, description, deadline, available and store them in variables
-          $id_room = $newRoom_avail->getIdRoom_avail();
+          $id_room = $newRoom_avail->getIdRoom();
           $id_ts = $newRoom_avail->getIdTs();
           $id_acadsem = $newRoom_avail->getIdAcadsem();
           $available = $newRoom_avail->getAvailable();
