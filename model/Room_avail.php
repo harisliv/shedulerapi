@@ -5,9 +5,9 @@
   error_reporting(E_ALL);
   //error_reporting(0);
 
-    class RoomException extends Exception { }
+    class Room_availException extends Exception { }
 
-    class Room {
+    class Room_avail {
 
 
       private $_id;
@@ -33,7 +33,7 @@
 
       public function setID($id) {
         if(($id !== null) && (!is_numeric($id) || $id < 0)){
-          throw new RoomException("Room availability ID error");
+          throw new Room_availException("Room_avail availability ID error");
         }
           $this->_id = $id;
       }
@@ -41,42 +41,42 @@
       public function setIdRoom($id_room) {
         if(($id_room !== null) && (!is_numeric($id_room) || $id_room < 0))
         {
-          throw new RoomException("Room ID error");
+          throw new Room_availException("Room_avail ID error");
         }
           $this->_id_room = $id_room;
       }
 
       public function setIdTs($id_ts) {
         if(($id_ts !== null) && (!is_numeric($id_ts) || $id_ts < 0)){
-          throw new RoomException("Time Slot ID error");
+          throw new Room_availException("Time Slot ID error");
         }
           $this->_id_ts = $id_ts;
       }
 
       public function setIdAcadsem($id_acadsem) {
         if(($id_acadsem !== null) && (!is_numeric($id_acadsem) || $id_acadsem < 0)){
-          throw new RoomException("Acad Sem ID error");
+          throw new Room_availException("Acad Sem ID error");
         }
           $this->_id_acadsem = $id_acadsem;
       }
 
       public function setAvailable($available) {
             if(strtoupper($available) !== 'Y' && strtoupper($available) !== 'N'){
-              throw new RoomException("Room available must by X or E");
+              throw new Room_availException("Room_avail available must by X or E");
             }
             $this->_available=$available;
           }
 
 
-      public function returnRoomAsArray() {
-        $room = array();
-        $room['id'] = $this->getID();
-        $room['id_room'] = $this->getIdRoom();
-        $room['id_ts'] = $this->getIdTs();
-        $room['id_acadsem'] = $this->getIdAcadsem();
-        $room['available'] = $this->getAvailable();
+      public function returnRoom_availAsArray() {
+        $room_avail = array();
+        $room_avail['id'] = $this->getID();
+        $room_avail['id_room'] = $this->getIdRoom();
+        $room_avail['id_ts'] = $this->getIdTs();
+        $room_avail['id_acadsem'] = $this->getIdAcadsem();
+        $room_avail['available'] = $this->getAvailable();
 
-        return $room;
+        return $room_avail;
       }
 
 

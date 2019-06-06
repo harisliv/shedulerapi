@@ -2,12 +2,12 @@
 
   //header('Content-Type: text/html; charset=utf-8');
   require_once('db.php');
-  require_once('../model/room.php');
+  require_once('../model/room_avail.php');
   require_once('../model/response.php');
   ini_set('display_errors', 1);
   ini_set('display_startup_errors', 1);
   error_reporting(E_ALL);
-  //error_reporting(0);
+  error_reporting(0);
 
   // attempt to set up connections to read and write db connections
   try {
@@ -147,12 +147,12 @@
           }
 
           // create new task with data, if non mandatory fields not provided then set to null
-          $newRoom = new Room(null, $jsonData->id_room, $jsonData->id_ts, $jsonData->id_acadsem, $jsonData->available);
+          $newRoom_avail = new Room_avail(null, $jsonData->id_room, $jsonData->id_ts, $jsonData->id_acadsem, $jsonData->available);
           // get title, description, deadline, available and store them in variables
-          $id_room = $newRoom->getIdRoom();
-          $id_ts = $newRoom->getIdTs();
-          $id_acadsem = $newRoom->getIdAcadsem();
-          $available = $newRoom->getAvailable();
+          $id_room = $newRoom_avail->getIdRoom_avail();
+          $id_ts = $newRoom_avail->getIdTs();
+          $id_acadsem = $newRoom_avail->getIdAcadsem();
+          $available = $newRoom_avail->getAvailable();
 
           // ADD AUTH TO QUERY
           // create db query
@@ -178,11 +178,11 @@
           }
 
           // get last task id so we can return the Task in the json
-          $lastRoomID = $writeDB->lastInsertId();
+          $lastRoom_availID = $writeDB->lastInsertId();
           // ADD AUTH TO QUERY
           // create db query to get newly created task - get from master db not read slave as replication may be too slow for successful read
           $query = $writeDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id = :id');
-          $query->bindParam(':id', $lastRoomID, PDO::PARAM_INT);
+          $query->bindParam(':id', $lastRoom_availID, PDO::PARAM_INT);
           $query->execute();
 
           // get row count
@@ -200,32 +200,32 @@
           }
 
           // create empty array to store tasks
-          $roomArray = array();
+          $room_availArray = array();
 
           // for each row returned - should be just one
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new task object
-            $room = new Room($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
+            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
 
             // create task and store in array for return in json data
-            $roomArray[] = $room->returnRoomAsArray();
+            $room_availArray[] = $room_avail->returnRoom_availAsArray();
           }
           // bundle tasks and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
-          $returnData['rooms'] = $roomArray;
+          $returnData['rooms_avail'] = $room_availArray;
 
           //set up response for successful return
           $response = new Response();
           $response->setHttpStatusCode(201);
           $response->setSuccess(true);
-          $response->addMessage("ROOM created");
+          $response->addMessage("Room_avail created");
           $response->setData($returnData);
           $response->send();
           exit;
         }
         // if task fails to create due to data types, missing fields or invalid data then send error json
-        catch(RoomException $ex) {
+        catch(Room_availException $ex) {
           $response = new Response();
           $response->setHttpStatusCode(400);
           $response->setSuccess(false);
@@ -239,7 +239,7 @@
           $response = new Response();
           $response->setHttpStatusCode(500);
           $response->setSuccess(false);
-          $response->addMessage("Failed to insert room into database - check submitted data for errors");
+          $response->addMessage("Failed to insert room_avail into database - check submitted data for errors");
           $response->send();
           exit;
         }
@@ -281,7 +281,7 @@
           $query->bindParam(':day', $day, PDO::PARAM_STR);
           $query->bindParam(':start_time', $start_time, PDO::PARAM_INT);
       		$query->execute();
-          $roomArray = array();
+          $room_availArray = array();
           $rowCount_new = 0;
           $availableyes = "Y";
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
@@ -308,10 +308,10 @@
               // create new task object for each row
               //echo "room avail " . $row_new['available'] . "<br>";
 
-              $room = new Room($row_new['id'], $row_new['id_room'], $row_new['id_ts'], $row_new['id_acadsem'], $row_new['available']);
+              $room_avail = new Room_avail($row_new['id'], $row_new['id_room'], $row_new['id_ts'], $row_new['id_acadsem'], $row_new['available']);
               // create task and store in array for return in json data
 
-        	    $roomArray[] = $room->returnRoomAsArray();
+        	    $room_availArray[] = $room_avail->returnRoom_availAsArray();
 
             }
 
@@ -323,7 +323,7 @@
           // bundle tasks and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount_new;
-          $returnData['rooms'] = $roomArray;
+          $returnData['rooms_avail'] = $room_availArray;
 
           // set up response for successful return
           $response = new Response();
@@ -383,21 +383,21 @@
           $rowCount = $query->rowCount();
 
           // create task array to store returned tasks
-          $roomArray = array();
+          $room_availArray = array();
 
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new task object for each row
-            $room = new Room($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
+            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
 
             // create task and store in array for return in json data
-      	    $roomArray[] = $room->returnRoomAsArray();
+      	    $room_availArray[] = $room_avail->returnRoom_availAsArray();
           }
 
           // bundle task and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
-          $returnData['rooms'] = $roomArray;
+          $returnData['rooms_avail'] = $room_availArray;
 
           // set up response for successful return
           $response = new Response();
@@ -409,7 +409,7 @@
           exit;
         }
         // if error with sql query return a json error
-        catch(RoomException $ex) {
+        catch(Room_availException $ex) {
           $response = new Response();
           $response->setHttpStatusCode(500);
           $response->setSuccess(false);
