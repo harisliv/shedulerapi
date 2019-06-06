@@ -15,12 +15,13 @@ RewriteRule    ^sessions$      controller/sessions.php      [L]    # Handle logi
 
 # Tasks
 RewriteRule    ^courses/([0-9a-zA-Z-]+)$          controller/course.php?courseid=$1    [L]    # Handle course id requests
-RewriteRule    ^room_avails/available$          controller/room_avail.php?available=Y     [L]    # Handle task get complete status requests
-RewriteRule    ^room_avails/tetarti/8$          controller/room_avail.php?day=te&start_time=8     [L]    # Handle task get complete status requests
+RewriteRule    ^room_avail/available$          controller/room_avail.php?available=Y     [L]    # Handle task get complete status requests
+RewriteRule    ^room_avail/tetarti/8$          controller/room_avail.php?day=te&start_time=8     [L]    # Handle task get complete status requests
 RewriteRule    ^tasks/incomplete$        controller/task.php?completed=N    [L]    # Handle task get incomplete status requests
 RewriteRule    ^tasks/page/([0-9]+)$     controller/task.php?page=$1    [L]    # Handle page requests
 RewriteRule    ^courses$                   controller/course.php     [L]    # Handle task requests
-RewriteRule    ^room_avails$                   controller/room_avail.php     [L]    # Handle room_avail requests
+RewriteRule    ^room_avail$                   controller/room_avail.php     [L]    # Handle room_avail requests
+RewriteRule    ^rooms$                   controller/room.php     [L]    # Handle room_avail requests
 
 # Users
 RewriteRule    ^users$      controller/users.php      [L]    # Handle user requests
