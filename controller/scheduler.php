@@ -162,6 +162,164 @@
           exit;
         }
       }
+      // else if request is a POST e.g. create task
+      elseif($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+        // create task
+        try {
+          // check request's content type header is JSON
+          if($_SERVER['CONTENT_TYPE'] !== 'application/json') {
+            // set up response for unsuccessful request
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("Content Type header not set to JSON");
+            $response->send();
+            exit;
+          }
+
+          // get POST request body as the POSTed data will be JSON format
+          $rawPostData = file_get_contents('php://input');
+
+          if(!$jsonData = json_decode($rawPostData)) {
+            // set up response for unsuccessful request
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("Request body is not valid JSON");
+            $response->send();
+            exit;
+          }
+
+          // check if post request contains title and completed data in body as these are mandatory
+          if(!isset($jsonData->id) || !isset($jsonData->id_course) || !isset($jsonData->id_acadsem) || !isset($jsonData->type_division) || !isset($jsonData->lektiko_division) || !isset($jsonData->id_prof) || !isset($jsonData->id_room) || !isset($jsonData->id_ts) || !isset($jsonData->division_str)) {
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            (!isset($jsonData->id) ? $response->addMessage("id field is mandatory and must be provided") : false);
+            (!isset($jsonData->id_course) ? $response->addMessage("id_course field is mandatory and must be provided") : false);
+            (!isset($jsonData->id_acadsem) ? $response->addMessage("id_acadsem field is mandatory and must be provided") : false);
+            (!isset($jsonData->type_division) ? $response->addMessage("type_division field is mandatory and must be provided") : false);
+            (!isset($jsonData->lektiko_division) ? $response->addMessage("lektiko_division field is mandatory and must be provided") : false);
+            (!isset($jsonData->id_prof	) ? $response->addMessage("id_prof	 field is mandatory and must be provided") : false);
+            (!isset($jsonData->id_room	) ? $response->addMessage("id_room	 field is mandatory and must be provided") : false);
+            (!isset($jsonData->id_ts	) ? $response->addMessage("id_ts	 field is mandatory and must be provided") : false);
+            (!isset($jsonData->division_str	) ? $response->addMessage("division_str	 field is mandatory and must be provided") : false);
+            $response->send();
+            exit;
+          }
+
+          // create new task with data, if non mandatory fields not provided then set to null
+
+          $scheduler = new Scheduler(null, $jsonData->id, $jsonData->id_course, $jsonData->id_acadsem, $jsonData->type_division, $jsonData->lektiko_division, $jsonData->id_prof, $jsonData->id_room, $jsonData->id_ts, $jsonData->division_str);
+          // get title, description, deadline, completed and store them in variables
+          $id = $scheduler->getID();
+          $id_course = $scheduler->getIdCourse();
+          $id_acadsem = $scheduler->getIdAcadsem();
+          $type_division = $scheduler->getTypeDivision();
+          $lektiko_division = $scheduler->getLektikoDivision();
+          $id_prof = $scheduler->getIdProf();
+          $id_room = $scheduler->getIdRoom();
+          $id_ts = $scheduler->getIdTs();
+          $division_str = $scheduler->getDivisionStr();
+
+          // ADD AUTH TO QUERY
+          // create db query
+          $query = $writeDB->prepare('insert into scheduler (id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str) values (:id, :id_course, :id_acadsem, :type_division, :lektiko_division, :id_prof, :id_room, :id_ts, :division_str)');
+          $query->bindParam(':id', $id, PDO::PARAM_INT);
+          $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          $query->bindParam(':type_division', $type_division, PDO::PARAM_STR);
+          $query->bindParam(':lektiko_division', $lektiko_division, PDO::PARAM_STR);
+          $query->bindParam(':id_prof', $id_prof, PDO::PARAM_INT);
+          $query->bindParam(':id_room', $id_room, PDO::PARAM_INT);
+          $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
+          $query->bindParam(':division_str', $division_str, PDO::PARAM_STR);
+          $query->execute();
+
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // check if row was actually inserted, PDO exception should have caught it if not.
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(500);
+            $response->setSuccess(false);
+            $response->addMessage("Failed to create task");
+            $response->send();
+            exit;
+          }
+
+          // get last task id so we can return the Task in the json
+          $lastCoursethisyearID = $writeDB->lastInsertId();
+          // ADD AUTH TO QUERY
+          // create db query to get newly created task - get from master db not read slave as replication may be too slow for successful read
+          $query = $writeDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str from Scheduler where id = :id');
+          $query->bindParam(':id', $lastCoursethisyearID, PDO::PARAM_STR);
+          $query->execute();
+
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // make sure that the new task was returned
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(500);
+            $response->setSuccess(false);
+            $response->addMessage("Failed to retrieve task after creation");
+            $response->send();
+            exit;
+          }
+
+          // create empty array to store tasks
+          $schedulerArray = array();
+
+          // for each row returned
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new AcadSem object for each row
+            //echo "<br>" . $row['lektiko_AcadSem'];
+            $scheduler = new Scheduler($row['id'], $row['id_course'], $row['id_acadsem'], $row['type_division'], $row['lektiko_division'], $row['id_prof'], $row['id_room'], $row['id_ts'], $row['division_str']);
+
+            // create AcadSem and store in array for return in json data
+            $schedulerArray[] = $scheduler->returnSchedulerAsArray();
+          }
+
+          // bundle AcadSems and rows returned into an array to return in the json data
+          $returnData = array();
+          $returnData['rows_returned'] = $rowCount;
+          $returnData['schedulers'] = $schedulerArray;
+
+          //set up response for successful return
+          $response = new Response();
+          $response->setHttpStatusCode(201);
+          $response->setSuccess(true);
+          $response->addMessage("Course created");
+          $response->setData($returnData);
+          $response->send();
+          exit;
+        }
+        // if task fails to create due to data types, missing fields or invalid data then send error json
+        catch(SchedulerException $ex) {
+          $response = new Response();
+          $response->setHttpStatusCode(400);
+          $response->setSuccess(false);
+          $response->addMessage($ex->getMessage());
+          $response->send();
+          exit;
+        }
+        // if error with sql query return a json error
+        catch(PDOException $ex) {
+          error_log("Database Query Error: ".$ex, 0);
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage("Failed to insert course into database - check submitted data for errors");
+          $response->send();
+          exit;
+        }
+      }
 
 
     }
