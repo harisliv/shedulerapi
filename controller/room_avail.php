@@ -154,6 +154,25 @@
           $id_acadsem = $newRoom_avail->getIdAcadsem();
           $available = $newRoom_avail->getAvailable();
 
+          $query1 = $writeDB->prepare('SELECT id_room, id_ts, id_acadsem from room_availability where id_room = :id_room and id_ts = :id_ts and id_acadsem = :id_acadsem');
+          $query1->bindParam(':id_room', $id_room, PDO::PARAM_INT);
+          $query1->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
+          $query1->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          $query1->execute();
+
+          // get row count
+          $rowCount1 = $query1->rowCount();
+
+          if($rowCount1 !== 0) {
+            // set up response for username already exists
+            $response = new Response();
+            $response->setHttpStatusCode(200);
+            $response->setSuccess(true);
+            $response->addMessage("Room is taken");
+            $response->send();
+            exit;
+          }
+
           // ADD AUTH TO QUERY
           // create db query
           $query = $writeDB->prepare('insert into room_availability (id_room, id_ts, id_acadsem, available) values (:id_room, :id_ts, :id_acadsem, :available)');
@@ -316,10 +335,7 @@
             }
 
           }
-          // get row count
-          // create task array to store returned task
-
-
+        
           // bundle tasks and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount_new;
