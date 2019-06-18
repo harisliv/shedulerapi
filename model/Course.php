@@ -42,7 +42,7 @@
     public function getHoursPractice() {return $this->_hours_practice;}
 
     public function setID($id) {
-      if(($id !== null) && (!is_numeric($id) || $id < 0))
+      if(($id !== null) && (!is_numeric($id) || $id < 0)){
         throw new CourseException(" ID error");
       }
         $this->_id = $id;
@@ -52,7 +52,7 @@
       if(strlen($course_id) < 0 || strlen($course_id) > 150){
         throw new CourseException("Course ID error");
       }
-        $this->_id = $id;
+        $this->_course_id = $course_id;
     }
 
     public function setName($name) {
@@ -63,7 +63,7 @@
     }
 
     public function setCurr($curr) {
-      if(strlen($curr) < 0 || strlen($curr) > 12){
+      if(strlen($curr) < 0 || strlen($curr) > 50){
         throw new CourseException("Course Programma Spoudwn error");
       }
       $this->_curr=$curr;
@@ -71,9 +71,9 @@
 
 
     public function setPeriod($period) {
-      //if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E'&& $period !== '-'){
-      //  throw new CourseException("Course period must by X or E or 0");
-      //}
+      if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E'&& $period !== '-'){
+        throw new CourseException("Course period must by X or E or 0");
+      }
       $this->_period=$period;
     }
 

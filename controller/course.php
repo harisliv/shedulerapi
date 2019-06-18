@@ -608,7 +608,7 @@ try {
       }
     }
     // else if request is a POST e.g. create task
-    elseif($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       // create task
       try {
@@ -654,9 +654,9 @@ try {
         }
 
         // create new task with data, if non mandatory fields not provided then set to null
-        $newCourse = new Course(null, $jsonData->course_id, $jsonData->name, $jsonData->curr, (isset($jsonData->period) ? $jsonData->period : "-"), (isset($jsonData->active) ? $jsonData->active : "Y"), $jsonData->hours_theory, $jsonData->hours_lab, $jsonData->hours_practice);
+        $newCourse = new Course(null, $jsonData->course_id, $jsonData->name, $jsonData->curr, $jsonData->period, $jsonData->active, $jsonData->hours_theory, $jsonData->hours_lab, $jsonData->hours_practice);
         // get title, description, deadline, completed and store them in variables
-        $id = $newCourse->getCourseID();
+        $course_id = $newCourse->getCourseID();
         $name = $newCourse->getName();
         $curr = $newCourse->getCurr();
         $period = $newCourse->getPeriod();

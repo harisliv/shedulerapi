@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 require_once('../model/course.php');
 
 try{
-  $course = new Course("sdawd123", "Title", "Description", "E", "Y", 1 ,1, 2);
+  $course = new Course(null,"sdawd123", "Title", "Description", "E", "Y", 1 ,1, 2);
   header('Content_type: application/json;charset=UTF-8');
   echo json_encode($course->returnCourseAsArray());
 }

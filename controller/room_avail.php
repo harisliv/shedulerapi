@@ -281,14 +281,17 @@
 
 
       //check to see if task id in query string is not empty and is number, if not return json error
-      if($day !== 'te') {
+      if( ($day !== 'de' && $day !== 'tr' && $day !== 'te' && $day !== 'pe' && $day !== 'pa') && $start_time < 9 || $start_time > 20 ) {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
-        $response->addMessage("Task ID cannot be blank or must be numeric");
+        ( ($day !== 'de' && $day !== 'tr' && $day !== 'te' && $day !== 'pe' && $day !== 'pa') ? $response->addMessage("wrong day") : false);
+        ( $start_time < 8 || $start_time > 20 ? $response->addMessage("Wrong start time") : false);
         $response->send();
         exit;
       }
+
+
 
       // if request is a GET, e.g. get task
       if($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -335,7 +338,7 @@
             }
 
           }
-        
+
           // bundle tasks and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount_new;
