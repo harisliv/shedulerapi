@@ -10,6 +10,7 @@
 
 
     private $_id;
+    private $_course_id;
     private $_name;
     private $_curr;
     private $_period;
@@ -17,10 +18,10 @@
     private $_hours_theory;
     private $_hours_lab;
     private $_hours_practice;
-    //private $_userid;
 
-    public function __construct($id, $name, $curr, $period , $active , $hours_theory , $hours_lab , $hours_practice){
+    public function __construct($id, $course_id, $name, $curr, $period , $active , $hours_theory , $hours_lab , $hours_practice){
       $this->setID($id);
+      $this->setCourseID($course_id);
       $this->setName($name);
       $this->setCurr($curr);
       $this->setPeriod($period);
@@ -28,10 +29,10 @@
       $this->setHoursTheory($hours_theory);
       $this->setHoursLab($hours_lab);
       $this->setHoursPractice($hours_practice);
-      //$this->setIdUser($userid);
       }
 
     public function getID() {return $this->_id;}
+    public function getCourseID() {return $this->_course_id;}
     public function getName() {return $this->_name;}
     public function getCurr() {return $this->_curr;}
     public function getPeriod() {return $this->_period;}
@@ -39,10 +40,16 @@
     public function getHoursTheory() {return $this->_hours_theory;}
     public function getHoursLab() {return $this->_hours_lab;}
     public function getHoursPractice() {return $this->_hours_practice;}
-    //public function getIdUser() {return $this->_userid;}
 
     public function setID($id) {
-      if(strlen($id) < 0 || strlen($id) > 150){
+      if(($id !== null) && (!is_numeric($id) || $id < 0))
+        throw new CourseException(" ID error");
+      }
+        $this->_id = $id;
+    }
+
+    public function setCourseID($course_id) {
+      if(strlen($course_id) < 0 || strlen($course_id) > 150){
         throw new CourseException("Course ID error");
       }
         $this->_id = $id;
@@ -64,9 +71,9 @@
 
 
     public function setPeriod($period) {
-      if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E'&& $period !== '-'){
-        throw new CourseException("Course period must by X or E or 0");
-      }
+      //if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E'&& $period !== '-'){
+      //  throw new CourseException("Course period must by X or E or 0");
+      //}
       $this->_period=$period;
     }
 
@@ -105,6 +112,7 @@
     public function returnCourseAsArray() {
       $course = array();
       $course['id'] = $this->getID();
+      $course['course_id'] = $this->getCourseID();
       $course['name'] = $this->getName();
       $course['curr'] = $this->getCurr();
       $course['period'] = $this->getPeriod();
@@ -112,7 +120,6 @@
       $course['hours_theory'] = $this->getHoursTheory();
       $course['hours_lab'] = $this->getHoursLab();
       $course['hours_practice'] = $this->getHoursPractice();
-      //$course['userid'] = $this->getIdUser();
 
       return $course;
     }

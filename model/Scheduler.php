@@ -65,9 +65,9 @@
 
 
     public function setTypeDivision($type_division) {
-      //if(strtoupper($type_division) !== 'LAB' && strtoupper($type_division) !== 'THEORY' && strtoupper($type_division) !== 'PRACTICE'){
-      //  throw new SchedulerException(" type_division must by X or E or 0");
-      //}
+      if(strtoupper($type_division) !== 'LAB' && strtoupper($type_division) !== 'THEORY' && strtoupper($type_division) !== 'PRACTICE'){
+        throw new SchedulerException(" type_division must by X or E or 0");
+      }
       $this->_type_division=$type_division;
     }
 
@@ -79,9 +79,9 @@
     }
 
     public function setIdProf($id_prof) {
-      //if($id_prof !== null && (!is_numeric($id_prof) || $id_prof < 0)){
-      //  throw new SchedulerException("_id_prof error");
-      //}
+      if($id_prof !== null && (!is_numeric($id_prof) || $id_prof < 0)){
+        throw new SchedulerException("_id_prof error");
+      }
         $this->_id_prof = $id_prof;
     }
 

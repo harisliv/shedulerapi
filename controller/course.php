@@ -1,10 +1,15 @@
 <?php
 
+
 //header('Content-Type: text/html; charset=utf-8');
 require_once('db.php');
 require_once('../model/course.php');
 require_once('../model/response.php');
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+error_reporting(0);
 
 
 // attempt to set up connections to read and write db connections
@@ -12,6 +17,7 @@ try {
   $writeDB = DB::connectWriteDB();
   $readDB = DB::connectReadDB();
 }
+
 catch(PDOException $ex) {
   // log connection error for troubleshooting and return a json error response
   error_log("Connection Error: ".$ex, 0);
@@ -509,7 +515,7 @@ try {
         $response->send();
         exit;
       }
-      catch(TaskException $ex) {
+      catch(CourseException $ex) {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
@@ -550,7 +556,7 @@ try {
         // ADD AUTH TO QUERY
         // create db query
 
-        $query = $readDB->prepare('SELECT id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list');
+        $query = $readDB->prepare('SELECT id, course_id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list');
         $query->execute();
 
         // get row count
@@ -562,7 +568,7 @@ try {
         // for each row returned
         while($row = $query->fetch(PDO::FETCH_ASSOC)) {
           // create new task object for each row
-          $course = new Course($row['id'], $row['name'], $row['curr'], $row['period'], $row['active'], $row['hours_theory'], $row['hours_lab'], $row['hours_practice']);
+          $course = new Course($row['id'], $row['course_id'], $row['name'], $row['curr'], $row['period'], $row['active'], $row['hours_theory'], $row['hours_lab'], $row['hours_practice']);
 
           // create task and store in array for return in json data
           $courseArray[] = $course->returnCourseAsArray();
@@ -631,11 +637,11 @@ try {
         }
 
         // check if post request contains title and completed data in body as these are mandatory
-        if(!isset($jsonData->id) || !isset($jsonData->name) || !isset($jsonData->curr) || !isset($jsonData->period) || !isset($jsonData->active) || !isset($jsonData->hours_theory) || !isset($jsonData->hours_lab) || !isset($jsonData->hours_practice)) {
+        if(!isset($jsonData->course_id) || !isset($jsonData->name) || !isset($jsonData->curr) || !isset($jsonData->period) || !isset($jsonData->active) || !isset($jsonData->hours_theory) || !isset($jsonData->hours_lab) || !isset($jsonData->hours_practice)) {
           $response = new Response();
           $response->setHttpStatusCode(400);
           $response->setSuccess(false);
-          (!isset($jsonData->title) ? $response->addMessage("ID field is mandatory and must be provided") : false);
+          (!isset($jsonData->course_id) ? $response->addMessage("course ID field is mandatory and must be provided") : false);
           (!isset($jsonData->name) ? $response->addMessage("Name field is mandatory and must be provided") : false);
           (!isset($jsonData->curr) ? $response->addMessage("Programma spoudwn field is mandatory and must be provided") : false);
           (!isset($jsonData->period) ? $response->addMessage("Period field is mandatory and must be provided") : false);
@@ -648,9 +654,9 @@ try {
         }
 
         // create new task with data, if non mandatory fields not provided then set to null
-        $newCourse = new Course($jsonData->id, $jsonData->name, $jsonData->curr, (isset($jsonData->period) ? $jsonData->period : "-"), (isset($jsonData->active) ? $jsonData->active : "Y"), $jsonData->hours_theory, $jsonData->hours_lab, $jsonData->hours_practice);
+        $newCourse = new Course(null, $jsonData->course_id, $jsonData->name, $jsonData->curr, (isset($jsonData->period) ? $jsonData->period : "-"), (isset($jsonData->active) ? $jsonData->active : "Y"), $jsonData->hours_theory, $jsonData->hours_lab, $jsonData->hours_practice);
         // get title, description, deadline, completed and store them in variables
-        $id = $newCourse->getID();
+        $id = $newCourse->getCourseID();
         $name = $newCourse->getName();
         $curr = $newCourse->getCurr();
         $period = $newCourse->getPeriod();
@@ -661,8 +667,8 @@ try {
 
         // ADD AUTH TO QUERY
         // create db query
-        $query = $writeDB->prepare('insert into course_list (id, name, curr, period, active, hours_theory, hours_lab, hours_practice) values (:id, :name, :curr, :period, :active, :hours_theory, :hours_lab, :hours_practice)');
-        $query->bindParam(':id', $id, PDO::PARAM_STR);
+        $query = $writeDB->prepare('insert into course_list (course_id, name, curr, period, active, hours_theory, hours_lab, hours_practice) values (:course_id, :name, :curr, :period, :active, :hours_theory, :hours_lab, :hours_practice)');
+        $query->bindParam(':course_id', $course_id, PDO::PARAM_STR);
         $query->bindParam(':name', $name, PDO::PARAM_STR);
         $query->bindParam(':curr', $curr, PDO::PARAM_STR);
         $query->bindParam(':period', $period, PDO::PARAM_STR);
@@ -690,8 +696,8 @@ try {
         $lastCourseID = $writeDB->lastInsertId();
         // ADD AUTH TO QUERY
         // create db query to get newly created task - get from master db not read slave as replication may be too slow for successful read
-        $query = $writeDB->prepare('SELECT id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :id');
-        $query->bindParam(':id', $id, PDO::PARAM_STR);
+        $query = $writeDB->prepare('SELECT id, course_id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :id');
+        $query->bindParam(':id', $lastCourseID, PDO::PARAM_INT);
         $query->execute();
 
         // get row count
@@ -714,7 +720,7 @@ try {
         // for each row returned - should be just one
         while($row = $query->fetch(PDO::FETCH_ASSOC)) {
           // create new task object
-          $course = new Course($row['id'], $row['name'], $row['curr'], $row['period'], $row['active'], $row['hours_theory'], $row['hours_lab'], $row['hours_practice']);
+          $course = new Course($row['id'], $row['course_id'], $row['name'], $row['curr'], $row['period'], $row['active'], $row['hours_theory'], $row['hours_lab'], $row['hours_practice']);
 
           // create task and store in array for return in json data
           $courseArray[] = $course->returnCourseAsArray();
@@ -734,7 +740,7 @@ try {
         exit;
       }
       // if task fails to create due to data types, missing fields or invalid data then send error json
-      catch(TaskException $ex) {
+      catch(CourseException $ex) {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);

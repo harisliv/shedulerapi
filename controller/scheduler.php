@@ -192,11 +192,11 @@
           }
 
           // check if post request contains title and completed data in body as these are mandatory
-          if(!isset($jsonData->id) || !isset($jsonData->id_course) || !isset($jsonData->id_acadsem) || !isset($jsonData->type_division) || !isset($jsonData->lektiko_division) || !isset($jsonData->id_prof) || !isset($jsonData->id_room) || !isset($jsonData->id_ts) || !isset($jsonData->division_str)) {
+          if( !isset($jsonData->id_course) || !isset($jsonData->id_acadsem) || !isset($jsonData->type_division) || !isset($jsonData->lektiko_division) || !isset($jsonData->id_prof) || !isset($jsonData->id_room) || !isset($jsonData->id_ts) || !isset($jsonData->division_str)) {
             $response = new Response();
             $response->setHttpStatusCode(400);
             $response->setSuccess(false);
-            (!isset($jsonData->id) ? $response->addMessage("id field is mandatory and must be provided") : false);
+            //(!isset($jsonData->id) ? $response->addMessage("id field is mandatory and must be provided") : false);
             (!isset($jsonData->id_course) ? $response->addMessage("id_course field is mandatory and must be provided") : false);
             (!isset($jsonData->id_acadsem) ? $response->addMessage("id_acadsem field is mandatory and must be provided") : false);
             (!isset($jsonData->type_division) ? $response->addMessage("type_division field is mandatory and must be provided") : false);
@@ -211,9 +211,9 @@
 
           // create new task with data, if non mandatory fields not provided then set to null
 
-          $scheduler = new Scheduler(null, $jsonData->id, $jsonData->id_course, $jsonData->id_acadsem, $jsonData->type_division, $jsonData->lektiko_division, $jsonData->id_prof, $jsonData->id_room, $jsonData->id_ts, $jsonData->division_str);
+          $scheduler = new Scheduler(null, $jsonData->id_course, $jsonData->id_acadsem, $jsonData->type_division, $jsonData->lektiko_division, $jsonData->id_prof, $jsonData->id_room, $jsonData->id_ts, $jsonData->division_str);
           // get title, description, deadline, completed and store them in variables
-          $id = $scheduler->getID();
+          //$id = $scheduler->getID();
           $id_course = $scheduler->getIdCourse();
           $id_acadsem = $scheduler->getIdAcadsem();
           $type_division = $scheduler->getTypeDivision();
@@ -225,8 +225,8 @@
 
           // ADD AUTH TO QUERY
           // create db query
-          $query = $writeDB->prepare('insert into scheduler (id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str) values (:id, :id_course, :id_acadsem, :type_division, :lektiko_division, :id_prof, :id_room, :id_ts, :division_str)');
-          $query->bindParam(':id', $id, PDO::PARAM_INT);
+          $query = $writeDB->prepare('insert into scheduler (id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str) values (:id_course, :id_acadsem, :type_division, :lektiko_division, :id_prof, :id_room, :id_ts, :division_str)');
+          //$query->bindParam(':id', $id, PDO::PARAM_INT);
           $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
           $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
           $query->bindParam(':type_division', $type_division, PDO::PARAM_STR);
@@ -255,38 +255,27 @@
           $lastCoursethisyearID = $writeDB->lastInsertId();
           // ADD AUTH TO QUERY
           // create db query to get newly created task - get from master db not read slave as replication may be too slow for successful read
-          $query = $writeDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str from Scheduler where id = :id');
-          $query->bindParam(':id', $lastCoursethisyearID, PDO::PARAM_STR);
+          $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str from scheduler where id=:id');
+          $query->bindParam(':id', $lastCoursethisyearID, PDO::PARAM_INT);
           $query->execute();
 
           // get row count
           $rowCount = $query->rowCount();
 
-          // make sure that the new task was returned
-          if($rowCount === 0) {
-            // set up response for unsuccessful return
-            $response = new Response();
-            $response->setHttpStatusCode(500);
-            $response->setSuccess(false);
-            $response->addMessage("Failed to retrieve task after creation");
-            $response->send();
-            exit;
-          }
-
-          // create empty array to store tasks
+          // create Scheduler array to store returned Schedulers
           $schedulerArray = array();
 
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-            // create new AcadSem object for each row
-            //echo "<br>" . $row['lektiko_AcadSem'];
+            // create new scheduler object for each row
+            //echo "<br>" . $row['lektiko_scheduler'];
             $scheduler = new Scheduler($row['id'], $row['id_course'], $row['id_acadsem'], $row['type_division'], $row['lektiko_division'], $row['id_prof'], $row['id_room'], $row['id_ts'], $row['division_str']);
 
-            // create AcadSem and store in array for return in json data
+            // create scheduler and store in array for return in json data
             $schedulerArray[] = $scheduler->returnSchedulerAsArray();
           }
 
-          // bundle AcadSems and rows returned into an array to return in the json data
+          // bundle schedulers and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
           $returnData['schedulers'] = $schedulerArray;
@@ -315,24 +304,30 @@
           $response = new Response();
           $response->setHttpStatusCode(500);
           $response->setSuccess(false);
-          $response->addMessage("Failed to insert course into database - check submitted data for errors");
+          $response->addMessage("Failed to insert task into database - check submitted data for errors");
           $response->send();
           exit;
         }
       }
 
-
+      else {
+        $response = new Response();
+        $response->setHttpStatusCode(404);
+        $response->setSuccess(false);
+        $response->addMessage("Endpoint not found");
+        $response->send();
+        exit;
+      }
     }
 
     else {
       $response = new Response();
-      $response->setHttpStatusCode(404);
+      $response->setHttpStatusCode(405);
       $response->setSuccess(false);
-      $response->addMessage("Endpoint not found");
+      $response->addMessage("Request method not allowed");
       $response->send();
       exit;
     }
-
   }
 
     catch(PDOException $ex) {
