@@ -3,6 +3,7 @@
   //header('Content-Type: text/html; charset=utf-8');
   require_once('db.php');
   require_once('../model/room_avail.php');
+  require_once('../model/room.php');
   require_once('../model/response.php');
   ini_set('display_errors', 1);
   ini_set('display_startup_errors', 1);
@@ -274,14 +275,16 @@
       }
     }
 
-    elseif (array_key_exists("day",$_GET) && array_key_exists("start_time",$_GET)) {
+    elseif (array_key_exists("day",$_GET) && array_key_exists("start_time",$_GET) && array_key_exists("room_code",$_GET)) {
       // get task id from query string
       $day = $_GET['day'];
       $start_time = $_GET['start_time'];
+      $room_code = $_GET['room_code'];
+
 
 
       //check to see if task id in query string is not empty and is number, if not return json error
-      if( ($day !== 'de' && $day !== 'tr' && $day !== 'te' && $day !== 'pe' && $day !== 'pa') && $start_time < 9 || $start_time > 20 ) {
+      if( ($day !== 'de' && $day !== 'tr' && $day !== 'te' && $day !== 'pe' && $day !== 'pa') && $start_time < 8 || $start_time > 20 ) {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
@@ -303,14 +306,29 @@
           $query->bindParam(':day', $day, PDO::PARAM_STR);
           $query->bindParam(':start_time', $start_time, PDO::PARAM_INT);
       		$query->execute();
+          //echo "reeeeeee :" . $room_code . "<br>";
+          $query1 = $readDB->prepare('SELECT id, lektiko_room, room_code from room where room_code = :room_code');
+          $query1->bindParam(':room_code', $room_code, PDO::PARAM_STR);
+      		$query1->execute();
           $room_availArray = array();
           $rowCount_new = 0;
           $availableyes = "Y";
+          while($row1 = $query1->fetch(PDO::FETCH_ASSOC)) {
+            // create new room object for each row
+            //echo "<br>" . $row['lektiko_room'];
+            $room = new Room($row1['id'], $row1['lektiko_room'], $row1['room_code']);
+            //echo "while room id: " . $row1['id'] . "room_code: " . $row1['room_code'] . "<br>";
+            $roomid = $row1['id'];
+            // create room and store in array for return in json data
+            //$roomArray[] = $room->returnRoomAsArray();
+          }
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            //echo "room id after while: " . $roomid . "<br>";
             //echo "time_slot " . $row['id'] . "<br>";
-            $query_new = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id_ts = :id_ts and available = :available');
+            $query_new = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id_room = :id_room and id_ts = :id_ts and available = :available');
+            $query_new->bindParam(':id_room', $roomid, PDO::PARAM_INT);
             $query_new->bindParam(':id_ts', $row['id'], PDO::PARAM_INT);
-            $query_new->bindParam(':available', $availableyes, PDO::PARAM_INT);
+            $query_new->bindParam(':available', $availableyes, PDO::PARAM_STR);
             $query_new->execute();
             $rowCount_new += $query_new->rowCount();
             //echo "rowcount " . $rowCount_new . "<br>";
@@ -354,7 +372,7 @@
           exit;
         }
         // if error with sql query return a json error
-        catch(TaskException $ex) {
+        catch(Room_availException $ex) {
           $response = new Response();
           $response->setHttpStatusCode(500);
           $response->setSuccess(false);
