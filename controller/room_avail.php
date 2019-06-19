@@ -475,6 +475,241 @@
       }
     }
 
+    elseif (array_key_exists("id",$_GET)) {
+      // get task id from query string
+      $room_availid = $_GET['id'];
+
+      //check to see if task id in query string is not empty and is number, if not return json error
+      if($room_availid == '' ) {
+        $response = new Response();
+        $response->setHttpStatusCode(400);
+        $response->setSuccess(false);
+        $response->addMessage("room_avail ID cannot be blank or must be numeric");
+        $response->send();
+        exit;
+      }
+
+      // if request is a GET, e.g. get task
+      if($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // attempt to query the database
+        try {
+          // create db query
+          // ADD AUTH TO QUERY
+          $availableyes = "Y";
+          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id = :id and available = :available');
+          $query->bindParam(':id', $room_availid, PDO::PARAM_INT);
+          $query->bindParam(':available', $availableyes, PDO::PARAM_STR);
+          $query->execute();
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // create task array to store returned task
+          $room_availArray = array();
+
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("room_avail not found");
+            $response->send();
+            exit;
+          }
+
+          // for each row returned
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new task object for each row
+            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
+
+            // create task and store in array for return in json data
+            $room_availArray[] = $room_avail->returnRoom_availAsArray();
+          }
+
+          // bundle tasks and rows returned into an array to return in the json data
+          $returnData = array();
+          $returnData['rows_returned'] = $rowCount;
+          $returnData['rooms_avail'] = $room_availArray;
+
+          // set up response for successful return
+          $response = new Response();
+          $response->setHttpStatusCode(200);
+          $response->setSuccess(true);
+          $response->toCache(true);
+          $response->setData($returnData);
+          $response->send();
+          exit;
+        }
+        // if error with sql query return a json error
+        catch(Room_availException $ex) {
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage($ex->getMessage());
+          $response->send();
+          exit;
+        }
+        catch(PDOException $ex) {
+          error_log("Database Query Error: ".$ex, 0);
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage("Failed to get task");
+          $response->send();
+          exit;
+        }
+      }
+
+
+      // handle updating task
+      elseif($_SERVER['REQUEST_METHOD'] === 'PATCH') {
+        // update task
+        try {
+          // check request's content type header is JSON
+          if($_SERVER['CONTENT_TYPE'] !== 'application/json') {
+            // set up response for unsuccessful request
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("Content Type header not set to JSON");
+            $response->send();
+            exit;
+          }
+
+          // get PATCH request body as the PATCHed data will be JSON format
+          $rawPatchData = file_get_contents('php://input');
+
+          if(!$jsonData = json_decode($rawPatchData)) {
+            // set up response for unsuccessful request
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("Request body is not valid JSON");
+            $response->send();
+            exit;
+          }
+
+
+          // ADD AUTH TO QUERY
+          // create db query to get task from database to update - use master db
+          $query = $writeDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id = :id');
+          $query->bindParam(':id', $room_availid, PDO::PARAM_INT);
+          $query->execute();
+echo $room_availid;
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // make sure that the task exists for a given task id
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("No task found to update");
+            $response->send();
+            exit;
+          }
+
+          // for each row returned - should be just one
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new task object
+            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
+
+            // create task and store in array for return in json data
+            $room_availArray[] = $room_avail->returnRoom_availAsArray();
+          }
+
+          // ADD AUTH TO QUERY
+          // create the query string including any query fields
+          // prepare the query
+          $query = $writeDB->prepare('UPDATE room_availability set available = :available where id = :id');
+
+          $availableno = "N";
+          // bind the task id provided in the query string
+          $query->bindParam(':id', $room_availid, PDO::PARAM_INT);
+          $query->bindParam(':available', $availableno, PDO::PARAM_STR);
+          // bind the user id returned
+          // run the query
+          $query->execute();
+
+          // get affected row count
+          $rowCount = $query->rowCount();
+
+          // check if row was actually updated, could be that the given values are the same as the stored values
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("Course not updated - given values may be the same as the stored values");
+            $response->send();
+            exit;
+          }
+          // ADD AUTH TO QUERY
+          // create db query to return the newly edited task - connect to master database
+          $query = $writeDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id = :id');
+          $query->bindParam(':id', $room_availid, PDO::PARAM_INT);
+          $query->execute();
+
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // check if task was found
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("No course found");
+            $response->send();
+            exit;
+          }
+          // create task array to store returned tasks
+          $room_avail = array();
+
+          // for each row returned
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new task object
+            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
+
+            // create task and store in array for return in json data
+            $room_availArray[] = $room_avail->returnRoom_availAsArray();
+          }
+          // bundle tasks and rows returned into an array to return in the json data
+          $returnData = array();
+          $returnData['rows_returned'] = $rowCount;
+          $returnData['rooms_avail'] = $room_availArray;
+          print_r($room_availArray);
+
+          // set up response for successful return
+          $response = new Response();
+          $response->setHttpStatusCode(200);
+          $response->setSuccess(true);
+          $response->addMessage("Course updated");
+          $response->setData($returnData);
+          $response->send();
+          exit;
+        }
+        catch(Room_availException $ex) {
+          $response = new Response();
+          $response->setHttpStatusCode(400);
+          $response->setSuccess(false);
+          $response->addMessage($ex->getMessage());
+          $response->send();
+          exit;
+        }
+        // if error with sql query return a json error
+        catch(PDOException $ex) {
+          error_log("Database Query Error: ".$ex, 0);
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage("Failed to update task - check your data for errors");
+          $response->send();
+          exit;
+        }
+      }
+    }
+
     else {
       $response = new Response();
       $response->setHttpStatusCode(404);
