@@ -246,7 +246,7 @@
             $response = new Response();
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
-            $response->addMessage("Failed to create task");
+            $response->addMessage("Failed to create Scheduler");
             $response->send();
             exit;
           }
@@ -284,7 +284,7 @@
           $response = new Response();
           $response->setHttpStatusCode(201);
           $response->setSuccess(true);
-          $response->addMessage("Course created");
+          $response->addMessage("Scheduler created");
           $response->setData($returnData);
           $response->send();
           exit;

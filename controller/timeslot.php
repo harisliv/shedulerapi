@@ -220,7 +220,7 @@
             $response = new Response();
             $response->setHttpStatusCode(404);
             $response->setSuccess(false);
-            $response->addMessage("no time slots available found this acad semester");
+            $response->addMessage("no time slots available in this acad semester");
             $response->send();
             exit;
           }

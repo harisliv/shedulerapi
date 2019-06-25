@@ -217,6 +217,24 @@
           $count_div_lab = $coursethisyear->getCountDivLab();
           $count_div_practice = $coursethisyear->getCountDivPractice();
 
+          $query1 = $writeDB->prepare('SELECT id_course, id_acadsem from course_this_year where id_course = :id_course and id_acadsem = :id_acadsem');
+          $query1->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+          $query1->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          $query1->execute();
+
+          // get row count
+          $rowCount1 = $query1->rowCount();
+
+          if($rowCount1 !== 0) {
+            // set up response for username already exists
+            $response = new Response();
+            $response->setHttpStatusCode(200);
+            $response->setSuccess(true);
+            $response->addMessage("Course this year already created");
+            $response->send();
+            exit;
+          }
+
           // ADD AUTH TO QUERY
           // create db query
           $query = $writeDB->prepare('insert into course_this_year (id_course, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice) values (:id_course, :id_responsible_prof, :id_acadsem, :count_div_theory, :count_div_lab, :count_div_practice)');
