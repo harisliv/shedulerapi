@@ -185,6 +185,90 @@
       }
     }
 
+    elseif (array_key_exists("id_acadsem",$_GET)) {
+      // get task id from query string
+      $id_acadsem = $_GET['id_acadsem'];
+
+      //check to see if task id in query string is not empty and is number, if not return json error
+      if($id_acadsem == '' ) {
+        $response = new Response();
+        $response->setHttpStatusCode(400);
+        $response->setSuccess(false);
+        $response->addMessage("Room ID cannot be blank or must be numeric");
+        $response->send();
+        exit;
+      }
+
+      // if request is a GET, e.g. get task
+      if($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // attempt to query the database
+        try {
+          // create db query
+          // ADD AUTH TO QUERY
+          $query = $readDB->prepare('SELECT id, start_time, day, id_acadsem from time_slots where id_acadsem = :id_acadsem');
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          $query->execute();
+
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // create task array to store returned task
+          $timeslotArray = array();
+
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("no time slots available found this acad semester");
+            $response->send();
+            exit;
+          }
+
+          // for each row returned
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new task object for each row
+            $timeslot = new TimeSlot($row['id'], $row['start_time'], $row['day'], $row['id_acadsem']);
+
+            // create task and store in array for return in json data
+            $timeslotArray[] = $timeslot->returnTimeSlotAsArray();
+          }
+
+          // bundle tasks and rows returned into an array to return in the json data
+          $returnData = array();
+          $returnData['rows_returned'] = $rowCount;
+          $returnData['timeslots'] = $timeslotArray;
+
+          // set up response for successful return
+          $response = new Response();
+          $response->setHttpStatusCode(200);
+          $response->setSuccess(true);
+          $response->toCache(true);
+          $response->setData($returnData);
+          $response->send();
+          exit;
+        }
+        // if error with sql query return a json error
+        catch(RoomException $ex) {
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage($ex->getMessage());
+          $response->send();
+          exit;
+        }
+        catch(PDOException $ex) {
+          error_log("Database Query Error: ".$ex, 0);
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage("Failed to get timeslot");
+          $response->send();
+          exit;
+        }
+      }
+    }
+
     elseif(empty($_GET)) {
 
       // if request is a GET e.g. get timeslots

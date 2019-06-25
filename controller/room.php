@@ -203,6 +203,16 @@
           // create room array to store returned rooms
           $roomArray = array();
 
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("No rooms");
+            $response->send();
+            exit;
+          }
+
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new room object for each row

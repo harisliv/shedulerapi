@@ -265,14 +265,14 @@
         }
       }
       // if any other request method apart from GET or POST is used then return 405 method not allowed
-      else {
-        $response = new Response();
-        $response->setHttpStatusCode(405);
-        $response->setSuccess(false);
-        $response->addMessage("Request method not allowed");
-        $response->send();
-        exit;
-      }
+      //else {
+      //  $response = new Response();
+      //  $response->setHttpStatusCode(405);
+      //  $response->setSuccess(false);
+      //  $response->addMessage("Request method not allowed");
+      //  $response->send();
+      //  exit;
+      //}
     }
 
     elseif (array_key_exists("day",$_GET) && array_key_exists("start_time",$_GET) && array_key_exists("room_code",$_GET)) {
@@ -392,10 +392,11 @@
       }
 }
 
-    elseif(array_key_exists("available",$_GET)) {
+    elseif(array_key_exists("available",$_GET) && array_key_exists("id_acadsem",$_GET)) {
 
       // get available from query string
       $available = $_GET['available'];
+      $id_acadsem = $_GET['id_acadsem'];
 
       // check to see if available in query string is either Y or N
       if($available !== "Y" && $available !== "N") {
@@ -412,7 +413,8 @@
         try {
           // ADD AUTH TO QUERY
           // create db query
-          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where available like :available');
+          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id_acadsem = :id_acadsem and available = :available');
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
           $query->bindParam(':available', $available, PDO::PARAM_STR);
       		$query->execute();
 
