@@ -108,12 +108,12 @@ try {
   // within this if/elseif statement, it is important to get the correct order (if query string GET param is used in multiple routes)
 
   // check if taskid is in the url e.g. /tasks/1
-  if (array_key_exists("courseid",$_GET)) {
+  if (array_key_exists("id",$_GET)) {
     // get task id from query string
-    $courseid = $_GET['courseid'];
+    $id = $_GET['id'];
 
     //check to see if task id in query string is not empty and is number, if not return json error
-    if($courseid == '' ) {
+    if($id == '' ) {
       $response = new Response();
       $response->setHttpStatusCode(400);
       $response->setSuccess(false);
@@ -128,8 +128,8 @@ try {
       try {
         // create db query
         // ADD AUTH TO QUERY
-        $query = $readDB->prepare('SELECT id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :courseid');
-        $query->bindParam(':courseid', $courseid, PDO::PARAM_STR);
+        $query = $readDB->prepare('SELECT id, course_id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :id');
+        $query->bindParam(':id', $id, PDO::PARAM_INT);
         $query->execute();
 
         // get row count
@@ -151,7 +151,7 @@ try {
         // for each row returned
         while($row = $query->fetch(PDO::FETCH_ASSOC)) {
           // create new task object for each row
-          $course = new Course($row['id'], $row['name'], $row['curr'], $row['period'], $row['active'], $row['hours_theory'], $row['hours_lab'], $row['hours_practice']);
+          $course = new Course($row['id'], $row['course_id'], $row['name'], $row['curr'], $row['period'], $row['active'], $row['hours_theory'], $row['hours_lab'], $row['hours_practice']);
 
           // create task and store in array for return in json data
           $courseArray[] = $course->returnCourseAsArray();
