@@ -6,8 +6,9 @@ class DB {
   private static $readDBConnection;
 
   public static function connectWriteDB() {
-    if(self::$writeDBConnection == null) {
-      self::$writeDBConnection = new PDO('mysql:host=136.243.5.115;dbname=live9824_scheduler;utf8', 'live9824_udemyv1', '=snJ5o.-4_yw');
+    if(self::$writeDBConnection == null){
+      //self::$writeDBConnection = new PDO('mysql:host=136.243.5.115;dbname=live9824_scheduler;utf8', 'live9824_udemyv1', '=snJ5o.-4_yw');
+      self::$writeDBConnection = new PDO('mysql:host=149.202.214.7;dbname=ine10378_scheduler;utf8', 'ine10378_scheduler', 'VOQY2kJ{Bd2G');
       self::$writeDBConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       self::$writeDBConnection->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     }
@@ -17,7 +18,8 @@ class DB {
 
   public static function connectReadDB() {
     if(self::$readDBConnection == null) {
-      self::$readDBConnection = new PDO('mysql:host=136.243.5.115;dbname=live9824_scheduler;utf8', 'live9824_udemyv1', '=snJ5o.-4_yw');
+      //self::$readDBConnection = new PDO('mysql:host=136.243.5.115;dbname=live9824_scheduler;utf8', 'live9824_udemyv1', '=snJ5o.-4_yw');
+      self::$readDBConnection = new PDO('mysql:host=149.202.214.7;dbname=ine10378_scheduler;utf8', 'ine10378_scheduler', 'VOQY2kJ{Bd2G');
       self::$readDBConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       self::$readDBConnection->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     }
