@@ -228,7 +228,7 @@
           if($rowCount1 !== 0) {
             // set up response for username already exists
             $response = new Response();
-            $response->setHttpStatusCode(200);
+            $response->setHttpStatusCode(400);
             $response->setSuccess(true);
             $response->addMessage("Course this year already created");
             $response->send();
