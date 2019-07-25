@@ -110,7 +110,7 @@
         try {
           // ADD AUTH TO QUERY
           // create db query
-          $query = $readDB->prepare('SELECT id, id_course, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice from course_this_year');
+          $query = $readDB->prepare('SELECT id, id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice from course_this_year');
           $query->execute();
 
           // get row count
@@ -123,7 +123,7 @@
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new AcadSem object for each row
             //echo "<br>" . $row['lektiko_AcadSem'];
-            $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
+            $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
 
             // create AcadSem and store in array for return in json data
             $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();
@@ -192,11 +192,13 @@
           }
 
           // check if post request contains title and completed data in body as these are mandatory
-          if(!isset($jsonData->id_course) || !isset($jsonData->id_responsible_prof) || !isset($jsonData->id_acadsem) || !isset($jsonData->count_div_theory) || !isset($jsonData->count_div_lab) || !isset($jsonData->count_div_practice)) {
+          if(!isset($jsonData->id_course) || !isset($jsonData->id_responsible_prof) || !isset($jsonData->name) || !isset($jsonData->learn_sem) || !isset($jsonData->id_acadsem) || !isset($jsonData->count_div_theory) || !isset($jsonData->count_div_lab) || !isset($jsonData->count_div_practice)) {
             $response = new Response();
             $response->setHttpStatusCode(400);
             $response->setSuccess(false);
             (!isset($jsonData->id_course) ? $response->addMessage("id_course field is mandatory and must be provided") : false);
+            (!isset($jsonData->name) ? $response->addMessage("name field is mandatory and must be provided") : false);
+            (!isset($jsonData->learn_sem) ? $response->addMessage("learn_sem field is mandatory and must be provided") : false);
             (!isset($jsonData->id_responsible_prof) ? $response->addMessage("id_responsible_prof field is mandatory and must be provided") : false);
             (!isset($jsonData->id_acadsem) ? $response->addMessage("id_acadsem field is mandatory and must be provided") : false);
             (!isset($jsonData->count_div_theory) ? $response->addMessage("count_div_theory field is mandatory and must be provided") : false);
@@ -208,9 +210,11 @@
 
           // create new task with data, if non mandatory fields not provided then set to null
 
-          $coursethisyear = new Course_this_year(null, $jsonData->id_course, $jsonData->id_responsible_prof, $jsonData->id_acadsem, (isset($jsonData->count_div_theory) ? $jsonData->count_div_theory : 0), (isset($jsonData->count_div_lab	) ? $jsonData->count_div_lab	 : 0), (isset($jsonData->count_div_practice) ? $jsonData->count_div_practice : 0));
+          $coursethisyear = new Course_this_year(null, $jsonData->id_course, $jsonData->name, $jsonData->learn_sem, $jsonData->id_responsible_prof, $jsonData->id_acadsem, (isset($jsonData->count_div_theory) ? $jsonData->count_div_theory : 0), (isset($jsonData->count_div_lab	) ? $jsonData->count_div_lab	 : 0), (isset($jsonData->count_div_practice) ? $jsonData->count_div_practice : 0));
           // get title, description, deadline, completed and store them in variables
           $id_course = $coursethisyear->getIdCourse();
+          $name = $coursethisyear->getName();
+          $learn_sem = $coursethisyear->getLearnSem();
           $id_responsible_prof = $coursethisyear->getIdResponsibleProf();
           $id_acadsem = $coursethisyear->getIdAcadsem();
           $count_div_theory = $coursethisyear->getCountDivTheory();
@@ -237,8 +241,10 @@
 
           // ADD AUTH TO QUERY
           // create db query
-          $query = $writeDB->prepare('insert into course_this_year (id_course, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice) values (:id_course, :id_responsible_prof, :id_acadsem, :count_div_theory, :count_div_lab, :count_div_practice)');
+          $query = $writeDB->prepare('insert into course_this_year (id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice) values (:id_course, :id_responsible_prof, :id_acadsem, :count_div_theory, :count_div_lab, :count_div_practice)');
           $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+          $query->bindParam(':name', $name, PDO::PARAM_STR);
+          $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
           $query->bindParam(':id_responsible_prof', $id_responsible_prof, PDO::PARAM_INT);
           $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
           $query->bindParam(':count_div_theory', $count_div_theory, PDO::PARAM_INT);
@@ -255,7 +261,7 @@
             $response = new Response();
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
-            $response->addMessage("Failed to create task");
+            $response->addMessage("Failed to create course this year");
             $response->send();
             exit;
           }
@@ -264,7 +270,7 @@
           $lastCoursethisyearID = $writeDB->lastInsertId();
           // ADD AUTH TO QUERY
           // create db query to get newly created task - get from master db not read slave as replication may be too slow for successful read
-          $query = $writeDB->prepare('SELECT id, id_course, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice from course_this_year where id = :id');
+          $query = $writeDB->prepare('SELECT id, id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice from course_this_year where id = :id');
           $query->bindParam(':id', $lastCoursethisyearID, PDO::PARAM_STR);
           $query->execute();
 
@@ -289,7 +295,7 @@
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new AcadSem object for each row
             //echo "<br>" . $row['lektiko_AcadSem'];
-            $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
+            $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
 
             // create AcadSem and store in array for return in json data
             $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();

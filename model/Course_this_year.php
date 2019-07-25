@@ -11,6 +11,8 @@
 
     private $_id;
     private $_id_course;
+    private $_name;
+    private $_learn_sem;
     private $_id_responsible_prof;
     private $_id_acadsem;
     private $_count_div_theory;
@@ -18,9 +20,11 @@
     private $_count_div_practice;
     //private $_userid;
 
-    public function __construct($id, $id_course, $id_responsible_prof, $id_acadsem, $count_div_theory , $count_div_lab , $count_div_practice){
+    public function __construct($id, $id_course, $name, $learn_sem, $id_responsible_prof, $id_acadsem, $count_div_theory , $count_div_lab , $count_div_practice){
       $this->setID($id);
       $this->setIdCourse($id_course);
+      $this->setName($name);
+      $this->setLearnSem($learn_sem);
       $this->setIdResponsibleProf($id_responsible_prof);
       $this->setIdAcadsem($id_acadsem);
       $this->setCountDivTheory($count_div_theory);
@@ -30,6 +34,8 @@
 
     public function getID() {return $this->_id;}
     public function getIdCourse() {return $this->_id_course;}
+    public function getName() {return $this->_name;}
+    public function getLearnSem() {return $this->_learn_sem;}
     public function getIdResponsibleProf() {return $this->_id_responsible_prof;}
     public function getIdAcadsem() {return $this->_id_acadsem;}
     public function getCountDivTheory() {return $this->_count_div_theory;}
@@ -48,6 +54,21 @@
         throw new Course_this_yearException("Course_this_year id_course error");
       }
       $this->_id_course=$id_course;
+    }
+
+    public function setName($name) {
+      if(strlen($name) < 0 || strlen($name) > 150){
+        throw new Course_this_yearException("Course Name error");
+      }
+      $this->_name=$name;
+    }
+
+
+    public function setLearnSem($learn_sem) {
+      if(strtoupper($learn_sem) !== 'Α' && strtoupper($learn_sem) !== 'Β'&& $learn_sem !== 'Γ'){
+        throw new Course_this_yearException("Course period must by Α or Β or Γ");
+      }
+      $this->_learn_sem=$learn_sem;
     }
 
     public function setIdResponsibleProf($id_responsible_prof) {
@@ -91,6 +112,8 @@
       $coursethisyear = array();
       $coursethisyear['id'] = $this->getID();
       $coursethisyear['id_course'] = $this->getIdCourse();
+      $coursethisyear['name'] = $this->getName();
+      $coursethisyear['learn_sem'] = $this->getLearnSem();
       $coursethisyear['id_responsible_prof'] = $this->getIdResponsibleProf();
       $coursethisyear['id_acadsem'] = $this->getIdAcadsem();
       $coursethisyear['count_div_theory'] = $this->getCountDivTheory();
