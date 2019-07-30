@@ -65,7 +65,7 @@
 
 
     public function setLearnSem($learn_sem) {
-      if(strtoupper($learn_sem) !== 'Α' && strtoupper($learn_sem) !== 'Β'&& $learn_sem !== 'Γ'){
+      if(strtoupper($learn_sem) !== 'A' && strtoupper($learn_sem) !== 'B'&& $learn_sem !== 'C'){
         throw new Course_this_yearException("Course period must by Α or Β or Γ");
       }
       $this->_learn_sem=$learn_sem;

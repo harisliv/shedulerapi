@@ -144,7 +144,7 @@
           exit;
         }
         // if error with sql query return a json error
-        catch(AcadSemException $ex) {
+        catch(Course_this_yearException $ex) {
           $response = new Response();
           $response->setHttpStatusCode(500);
           $response->setSuccess(false);
@@ -192,7 +192,7 @@
           }
 
           // check if post request contains title and completed data in body as these are mandatory
-          if(!isset($jsonData->id_course) || !isset($jsonData->id_responsible_prof) || !isset($jsonData->name) || !isset($jsonData->learn_sem) || !isset($jsonData->id_acadsem) || !isset($jsonData->count_div_theory) || !isset($jsonData->count_div_lab) || !isset($jsonData->count_div_practice)) {
+          if(!isset($jsonData->id_course) || !isset($jsonData->name) || !isset($jsonData->learn_sem) || !isset($jsonData->id_responsible_prof) || !isset($jsonData->id_acadsem) || !isset($jsonData->count_div_theory) || !isset($jsonData->count_div_lab) || !isset($jsonData->count_div_practice)) {
             $response = new Response();
             $response->setHttpStatusCode(400);
             $response->setSuccess(false);
@@ -241,7 +241,7 @@
 
           // ADD AUTH TO QUERY
           // create db query
-          $query = $writeDB->prepare('insert into course_this_year (id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice) values (:id_course, :id_responsible_prof, :id_acadsem, :count_div_theory, :count_div_lab, :count_div_practice)');
+          $query = $writeDB->prepare('insert into course_this_year (id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice) values (:id_course, :name, :learn_sem, :id_responsible_prof, :id_acadsem, :count_div_theory, :count_div_lab, :count_div_practice)');
           $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
           $query->bindParam(':name', $name, PDO::PARAM_STR);
           $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
@@ -316,7 +316,7 @@
           exit;
         }
         // if task fails to create due to data types, missing fields or invalid data then send error json
-        catch(TaskException $ex) {
+        catch(Course_this_yearException $ex) {
           $response = new Response();
           $response->setHttpStatusCode(400);
           $response->setSuccess(false);
@@ -338,6 +338,100 @@
 
 
     }
+
+    elseif (array_key_exists("learn_sem",$_GET) && array_key_exists("acad_sem",$_GET)) {
+      // get task id from query string
+      $learn_sem = $_GET['learn_sem'];
+      $acad_sem = $_GET['acad_sem'];
+
+
+
+      //check to see if task id in query string is not empty and is number, if not return json error
+      /*
+      if( ($learn_sem !== 'A' && $learn_sem !== 'B' && $learn_sem !== 'Γ' && $learn_sem !== 'Δ' && $learn_sem !== 'Ε') && $acad_sem < 2016) {
+        $response = new Response();
+        $response->setHttpStatusCode(400);
+        $response->setSuccess(false);
+        ( ($learn_sem !== 'A' && $learn_sem !== 'B' && $learn_sem !== 'Γ' && $learn_sem !== 'Δ' && $learn_sem !== 'Ε') ? $response->addMessage("wrong day") : false);
+        ( $acad_sem < 2017? $response->addMessage("Wrong start time") : false);
+        $response->send();
+        exit;
+      } */
+
+
+
+      // if request is a GET, e.g. get task
+      if($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // attempt to query the database
+        try {
+          // create db query
+          // ADD AUTH TO QUERY
+          $query = $readDB->prepare('SELECT id, id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice from course_this_year where learn_sem = :learn_sem and id_acadsem = :id_acadsem');
+          $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
+          $query->bindParam(':id_acadsem', $acad_sem, PDO::PARAM_INT);
+      		$query->execute();
+
+          $rowCount = $query->rowCount();
+
+          // create task array to store returned task
+          $coursethisyearArray = array();
+
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("Course not found");
+            $response->send();
+            exit;
+          }
+
+          // for each row returned
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new task object for each row
+            $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
+
+            // create task and store in array for return in json data
+            $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();
+          }
+
+          // bundle tasks and rows returned into an array to return in the json data
+          $returnData = array();
+          $returnData['rows_returned'] = $rowCount;
+          $returnData['coursethisyears'] = $coursethisyearArray;
+
+          // set up response for successful return
+          $response = new Response();
+          $response->setHttpStatusCode(200);
+          $response->setSuccess(true);
+          $response->toCache(true);
+          $response->setData($returnData);
+          $response->send();
+          exit;
+
+
+
+        }
+        // if error with sql query return a json error
+        catch(Course_this_yearException $ex) {
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage($ex->getMessage());
+          $response->send();
+          exit;
+        }
+        catch(PDOException $ex) {
+          error_log("Database Query Error: ".$ex, 0);
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage("Failed to get task");
+          $response->send();
+          exit;
+        }
+      }
+}
 
     else {
       $response = new Response();
