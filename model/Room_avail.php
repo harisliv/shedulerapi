@@ -15,14 +15,16 @@
       private $_id_ts;
       private $_id_acadsem;
       private $_available;
-      //private $_userid;
+      private $_learn_sem;
 
-      public function __construct($id, $id_room , $id_ts , $id_acadsem , $available){
+      public function __construct($id, $id_room, $id_ts, $id_acadsem, $available, $learn_sem){
         $this->setID($id);
         $this->setIdRoom($id_room);
         $this->setIdTs($id_ts);
         $this->setIdAcadsem($id_acadsem);
         $this->setAvailable($available);
+        $this->setLearnSem($learn_sem);
+
         }
 
       public function getID() {return $this->_id;}
@@ -30,6 +32,8 @@
       public function getIdTs() {return $this->_id_ts;}
       public function getIdAcadsem() {return $this->_id_acadsem;}
       public function getAvailable() {return $this->_available;}
+      public function getLearnSem() {return $this->_learn_sem;}
+
 
       public function setID($id) {
         if(($id !== null) && (!is_numeric($id) || $id < 0)){
@@ -68,6 +72,14 @@
           }
 
 
+          public function setLearnSem($learn_sem) {
+            if(strtoupper($learn_sem) !== 'A' && strtoupper($learn_sem) !== 'B'&& $learn_sem !== 'C'){
+              throw new Room_availException("LEARN SEM period must by Α or Β or Γ");
+            }
+            $this->_learn_sem=$learn_sem;
+          }
+
+
       public function returnRoom_availAsArray() {
         $room_avail = array();
         $room_avail['id'] = $this->getID();
@@ -75,6 +87,8 @@
         $room_avail['id_ts'] = $this->getIdTs();
         $room_avail['id_acadsem'] = $this->getIdAcadsem();
         $room_avail['available'] = $this->getAvailable();
+        $room_avail['learn_sem'] = $this->getLearnSem();
+
 
         return $room_avail;
       }

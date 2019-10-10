@@ -143,17 +143,21 @@
             (!isset($jsonData->id_ts) ? $response->addMessage("id_ts field is mandatory and must be provided") : false);
             (!isset($jsonData->id_acadsem) ? $response->addMessage("id_acadsem spoudwn field is mandatory and must be provided") : false);
             (!isset($jsonData->available) ? $response->addMessage("available field is mandatory and must be provided") : false);
+            (!isset($jsonData->learn_sem) ? $response->addMessage("learn_sem field is mandatory and must be provided") : false);
+
             $response->send();
             exit;
           }
 
           // create new task with data, if non mandatory fields not provided then set to null
-          $newRoom_avail = new Room_avail(null, $jsonData->id_room, $jsonData->id_ts, $jsonData->id_acadsem, $jsonData->available);
+          $newRoom_avail = new Room_avail(null, $jsonData->id_room, $jsonData->id_ts, $jsonData->id_acadsem, $jsonData->available, $jsonData->learn_sem);
           // get title, description, deadline, available and store them in variables
           $id_room = $newRoom_avail->getIdRoom();
           $id_ts = $newRoom_avail->getIdTs();
           $id_acadsem = $newRoom_avail->getIdAcadsem();
           $available = $newRoom_avail->getAvailable();
+          $learn_sem = $coursethisyear->getLearnSem();
+
 
           $query1 = $writeDB->prepare('SELECT id_room, id_ts, id_acadsem from room_availability where id_room = :id_room and id_ts = :id_ts and id_acadsem = :id_acadsem');
           $query1->bindParam(':id_room', $id_room, PDO::PARAM_INT);
@@ -181,6 +185,8 @@
           $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
           $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
           $query->bindParam(':available', $available, PDO::PARAM_STR);
+          $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
+
           $query->execute();
 
           // get row count
@@ -201,7 +207,7 @@
           $lastRoom_availID = $writeDB->lastInsertId();
           // ADD AUTH TO QUERY
           // create db query to get newly created task - get from master db not read slave as replication may be too slow for successful read
-          $query = $writeDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id = :id');
+          $query = $writeDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id = :id');
           $query->bindParam(':id', $lastRoom_availID, PDO::PARAM_INT);
           $query->execute();
 
@@ -225,7 +231,7 @@
           // for each row returned - should be just one
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new task object
-            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
+            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available'], $row['learn_sem']);
 
             // create task and store in array for return in json data
             $room_availArray[] = $room_avail->returnRoom_availAsArray();
@@ -325,7 +331,7 @@
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             //echo "room id after while: " . $roomid . "<br>";
             //echo "time_slot " . $row['id'] . "<br>";
-            $query_new = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id_room = :id_room and id_ts = :id_ts and available = :available');
+            $query_new = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id_room = :id_room and id_ts = :id_ts and available = :available');
             $query_new->bindParam(':id_room', $roomid, PDO::PARAM_INT);
             $query_new->bindParam(':id_ts', $row['id'], PDO::PARAM_INT);
             $query_new->bindParam(':available', $availableyes, PDO::PARAM_STR);
@@ -348,7 +354,7 @@
               // create new task object for each row
               //echo "room avail " . $row_new['available'] . "<br>";
 
-              $room_avail = new Room_avail($row_new['id'], $row_new['id_room'], $row_new['id_ts'], $row_new['id_acadsem'], $row_new['available']);
+              $room_avail = new Room_avail($row_new['id'], $row_new['id_room'], $row_new['id_ts'], $row_new['id_acadsem'], $row_new['available'], $row_new['learn_sem']);
               // create task and store in array for return in json data
 
         	    $room_availArray[] = $room_avail->returnRoom_availAsArray();
@@ -392,11 +398,12 @@
       }
 }
 
-    elseif(array_key_exists("available",$_GET) && array_key_exists("id_acadsem",$_GET)) {
+    elseif(array_key_exists("id_acadsem",$_GET) && array_key_exists("available",$_GET) && array_key_exists("learn_sem",$_GET)) {
 
       // get available from query string
-      $available = $_GET['available'];
       $id_acadsem = $_GET['id_acadsem'];
+      $available = $_GET['available'];
+      $learn_sem = $_GET['learn_sem'];
 
       // check to see if available in query string is either Y or N
       if($available !== "Y" && $available !== "N") {
@@ -413,9 +420,10 @@
         try {
           // ADD AUTH TO QUERY
           // create db query
-          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id_acadsem = :id_acadsem and available = :available');
+          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id_acadsem = :id_acadsem and available = :available and learn_sem = :learn_sem');
           $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
           $query->bindParam(':available', $available, PDO::PARAM_STR);
+          $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
       		$query->execute();
 
           // get row count
@@ -427,7 +435,7 @@
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new task object for each row
-            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
+            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available'], $row['learn_sem']);
 
             // create task and store in array for return in json data
       	    $room_availArray[] = $room_avail->returnRoom_availAsArray();
@@ -498,7 +506,7 @@
           // create db query
           // ADD AUTH TO QUERY
           $availableyes = "Y";
-          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available from room_availability where id = :id and available = :available');
+          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id = :id and available = :available');
           $query->bindParam(':id', $room_availid, PDO::PARAM_INT);
           $query->bindParam(':available', $availableyes, PDO::PARAM_STR);
           $query->execute();
@@ -521,7 +529,7 @@
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new task object for each row
-            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
+            $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available'], $row['learn_sem']);
 
             // create task and store in array for return in json data
             $room_availArray[] = $room_avail->returnRoom_availAsArray();
