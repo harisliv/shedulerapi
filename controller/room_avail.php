@@ -135,7 +135,7 @@
           }
 
           // check if post request contains title and available data in body as these are mandatory
-          if(!isset($jsonData->id_room) || !isset($jsonData->id_ts) || !isset($jsonData->id_acadsem) || !isset($jsonData->available)) {
+          if(!isset($jsonData->id_room) || !isset($jsonData->id_ts) || !isset($jsonData->id_acadsem) || !isset($jsonData->available) || !isset($jsonData->learn_sem)) {
             $response = new Response();
             $response->setHttpStatusCode(400);
             $response->setSuccess(false);
@@ -156,13 +156,14 @@
           $id_ts = $newRoom_avail->getIdTs();
           $id_acadsem = $newRoom_avail->getIdAcadsem();
           $available = $newRoom_avail->getAvailable();
-          $learn_sem = $coursethisyear->getLearnSem();
+          $learn_sem = $newRoom_avail->getLearnSem();
 
 
-          $query1 = $writeDB->prepare('SELECT id_room, id_ts, id_acadsem from room_availability where id_room = :id_room and id_ts = :id_ts and id_acadsem = :id_acadsem');
+          $query1 = $writeDB->prepare('SELECT id_room, id_ts, id_acadsem, learn_sem from room_availability where id_room = :id_room and id_ts = :id_ts and id_acadsem = :id_acadsem and learn_sem = :learn_sem');
           $query1->bindParam(':id_room', $id_room, PDO::PARAM_INT);
           $query1->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
           $query1->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          $query1->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
           $query1->execute();
 
           // get row count
@@ -180,7 +181,7 @@
 
           // ADD AUTH TO QUERY
           // create db query
-          $query = $writeDB->prepare('insert into room_availability (id_room, id_ts, id_acadsem, available) values (:id_room, :id_ts, :id_acadsem, :available)');
+          $query = $writeDB->prepare('insert into room_availability (id_room, id_ts, id_acadsem, available, learn_sem) values (:id_room, :id_ts, :id_acadsem, :available, :learn_sem)');
           $query->bindParam(':id_room', $id_room, PDO::PARAM_INT);
           $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
           $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
@@ -406,6 +407,7 @@
       $learn_sem = $_GET['learn_sem'];
 
       // check to see if available in query string is either Y or N
+      /*
       if($available !== "Y" && $available !== "N") {
         $response = new Response();
         $response->setHttpStatusCode(400);
@@ -414,6 +416,7 @@
         $response->send();
         exit;
       }
+      */
 
       if($_SERVER['REQUEST_METHOD'] === 'GET') {
         // attempt to query the database

@@ -18,8 +18,9 @@
     private $_id_room;
     private $_id_ts;
     private $_division_str;
+    private $_learn_sem;
 
-    public function __construct($id, $id_course, $id_acadsem, $type_division, $lektiko_division, $id_prof, $id_room, $id_ts, $division_str){
+    public function __construct($id, $id_course, $id_acadsem, $type_division, $lektiko_division, $id_prof, $id_room, $id_ts, $division_str, $learn_sem){
       $this->setID($id);
       $this->setIdCourse($id_course);
       $this->setIdAcadsem($id_acadsem);
@@ -29,6 +30,7 @@
       $this->setIdRoom($id_room);
       $this->setIdTs($id_ts);
       $this->setDivisionStr($division_str);
+      $this->setLearnSem($learn_sem);
       }
 
     public function getID() {return $this->_id;}
@@ -40,6 +42,7 @@
     public function getIdRoom() {return $this->_id_room;}
     public function getIdTs() {return $this->_id_ts;}
     public function getDivisionStr() {return $this->_division_str;}
+    public function getLearnSem() {return $this->_learn_sem;}
 
     public function setID($id) {
       if(($id !== null) && (!is_numeric($id) || $id < 0 )){
@@ -108,6 +111,15 @@
     }
 
 
+    public function setLearnSem($learn_sem) {
+      /*
+      if(strtoupper($learn_sem) !== 'A' && strtoupper($learn_sem) !== 'B'&& $learn_sem !== 'C'){
+        throw new Room_availException("LEARN SEM period must by Α or Β or Γ");
+      }*/
+      $this->_learn_sem=$learn_sem;
+    }
+
+
 
     public function returnSchedulerAsArray() {
       $scheduler = array();
@@ -120,6 +132,8 @@
       $scheduler['id_room'] = $this->getIdRoom();
       $scheduler['id_ts'] = $this->getIdTs();
       $scheduler['division_str'] = $this->getDivisionStr();
+      $scheduler['learn_sem'] = $this->getLearnSem();
+
 
       return $scheduler;
     }

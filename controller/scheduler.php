@@ -192,7 +192,7 @@
           }
 
           // check if post request contains title and completed data in body as these are mandatory
-          if( !isset($jsonData->id_course) || !isset($jsonData->id_acadsem) || !isset($jsonData->type_division) || !isset($jsonData->lektiko_division) || !isset($jsonData->id_prof) || !isset($jsonData->id_room) || !isset($jsonData->id_ts) || !isset($jsonData->division_str)) {
+          if( !isset($jsonData->id_course) || !isset($jsonData->id_acadsem) || !isset($jsonData->type_division) || !isset($jsonData->lektiko_division) || !isset($jsonData->id_prof) || !isset($jsonData->id_room) || !isset($jsonData->id_ts) || !isset($jsonData->division_str) || !isset($jsonData->learn_sem)) {
             $response = new Response();
             $response->setHttpStatusCode(400);
             $response->setSuccess(false);
@@ -205,6 +205,7 @@
             (!isset($jsonData->id_room	) ? $response->addMessage("id_room	 field is mandatory and must be provided") : false);
             (!isset($jsonData->id_ts	) ? $response->addMessage("id_ts	 field is mandatory and must be provided") : false);
             (!isset($jsonData->division_str	) ? $response->addMessage("division_str	 field is mandatory and must be provided") : false);
+            (!isset($jsonData->learn_sem) ? $response->addMessage("learn_sem field is mandatory and must be provided") : false);
             $response->send();
             exit;
           }
@@ -213,7 +214,7 @@
 
           // create new task with data, if non mandatory fields not provided then set to null
 
-          $scheduler = new Scheduler(null, $jsonData->id_course, $jsonData->id_acadsem, $jsonData->type_division, $jsonData->lektiko_division, $jsonData->id_prof, $jsonData->id_room, $jsonData->id_ts, $jsonData->division_str);
+          $scheduler = new Scheduler(null, $jsonData->id_course, $jsonData->id_acadsem, $jsonData->type_division, $jsonData->lektiko_division, $jsonData->id_prof, $jsonData->id_room, $jsonData->id_ts, $jsonData->division_str, $jsonData->learn_sem);
           // get title, description, deadline, completed and store them in variables
           //$id = $scheduler->getID();
           $id_course = $scheduler->getIdCourse();
@@ -224,14 +225,18 @@
           $id_room = $scheduler->getIdRoom();
           $id_ts = $scheduler->getIdTs();
           $division_str = $scheduler->getDivisionStr();
+          $learn_sem = $scheduler->getLearnSem();
 
 
-                    $query1 = $writeDB->prepare('SELECT id_course, id_acadsem, type_division, id_room, id_ts from scheduler where id_course = :id_course and id_acadsem = :id_acadsem and type_division = :type_division and id_room = :id_room and id_ts = :id_ts');
+
+                    $query1 = $writeDB->prepare('SELECT id_course, id_acadsem, type_division, id_room, id_ts, learn_sem from scheduler where id_course = :id_course and id_acadsem = :id_acadsem and type_division = :type_division and id_room = :id_room and id_ts = :id_ts and learn_sem = :learn_sem');
                     $query1->bindParam(':id_course', $id_course, PDO::PARAM_INT);
                     $query1->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
                     $query1->bindParam(':type_division', $type_division, PDO::PARAM_STR);
                     $query1->bindParam(':id_room', $id_room, PDO::PARAM_INT);
                     $query1->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
+                    $query1->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
+
                     $query1->execute();
 
                     // get row count
@@ -250,7 +255,7 @@
 
           // ADD AUTH TO QUERY
           // create db query
-          $query = $writeDB->prepare('insert into scheduler (id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str) values (:id_course, :id_acadsem, :type_division, :lektiko_division, :id_prof, :id_room, :id_ts, :division_str)');
+          $query = $writeDB->prepare('insert into scheduler (id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str, learn_sem) values (:id_course, :id_acadsem, :type_division, :lektiko_division, :id_prof, :id_room, :id_ts, :division_str, :learn_sem)');
           //$query->bindParam(':id', $id, PDO::PARAM_INT);
           $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
           $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
@@ -260,6 +265,7 @@
           $query->bindParam(':id_room', $id_room, PDO::PARAM_INT);
           $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
           $query->bindParam(':division_str', $division_str, PDO::PARAM_STR);
+          $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
           $query->execute();
 
           // get row count
@@ -294,7 +300,7 @@
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new scheduler object for each row
             //echo "<br>" . $row['lektiko_scheduler'];
-            $scheduler = new Scheduler($row['id'], $row['id_course'], $row['id_acadsem'], $row['type_division'], $row['lektiko_division'], $row['id_prof'], $row['id_room'], $row['id_ts'], $row['division_str']);
+            $scheduler = new Scheduler($row['id'], $row['id_course'], $row['id_acadsem'], $row['type_division'], $row['lektiko_division'], $row['id_prof'], $row['id_room'], $row['id_ts'], $row['division_str'], $row['learn_sem']);
 
             // create scheduler and store in array for return in json data
             $schedulerArray[] = $scheduler->returnSchedulerAsArray();
@@ -345,11 +351,12 @@
       }
     }
 
-        elseif(array_key_exists("id_acadsem",$_GET)) {
+    elseif(array_key_exists("id_acadsem",$_GET) && array_key_exists("learn_sem",$_GET)) {
 
-          // get available from query string
-          $id_acadsem = $_GET['id_acadsem'];
-
+      // get available from query string
+      $id_acadsem = $_GET['id_acadsem'];
+      $learn_sem = $_GET['learn_sem'];
+      /*
           // check to see if available in query string is either Y or N
           if($id_acadsem == " " && $id_acadsem < 0) {
             $response = new Response();
@@ -359,14 +366,16 @@
             $response->send();
             exit;
           }
+          */
 
           if($_SERVER['REQUEST_METHOD'] === 'GET') {
             // attempt to query the database
             try {
               // ADD AUTH TO QUERY
               // create db query
-              $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str from scheduler where id_acadsem=:id_acadsem');
+              $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str from scheduler where id_acadsem=:id_acadsem and learn_sem=:learn_sem');
               $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+              $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
           		$query->execute();
 
               // get row count
@@ -378,7 +387,7 @@
               // for each row returned
               while($row = $query->fetch(PDO::FETCH_ASSOC)) {
                 // create new task object for each row
-                $scheduler = new Scheduler($row['id'], $row['id_course'], $row['id_acadsem'], $row['type_division'], $row['lektiko_division'], $row['id_prof'], $row['id_room'], $row['id_ts'], $row['division_str']);
+                $scheduler = new Scheduler($row['id'], $row['id_course'], $row['id_acadsem'], $row['type_division'], $row['lektiko_division'], $row['id_prof'], $row['id_room'], $row['id_ts'], $row['division_str'], $row['learn_sem']);
 
                 // create task and store in array for return in json data
           	    $schedulerArray[] = $scheduler->returnSchedulerAsArray();

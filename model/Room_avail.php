@@ -3,7 +3,7 @@
   ini_set('display_errors', 1);
   ini_set('display_startup_errors', 1);
   error_reporting(E_ALL);
-  //error_reporting(0);
+  error_reporting(0);
 
     class Room_availException extends Exception { }
 
@@ -73,9 +73,10 @@
 
 
           public function setLearnSem($learn_sem) {
+            /*
             if(strtoupper($learn_sem) !== 'A' && strtoupper($learn_sem) !== 'B'&& $learn_sem !== 'C'){
               throw new Room_availException("LEARN SEM period must by Α or Β or Γ");
-            }
+            }*/
             $this->_learn_sem=$learn_sem;
           }
 
