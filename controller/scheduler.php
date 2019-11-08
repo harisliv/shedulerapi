@@ -437,10 +437,10 @@
           }
         }
 
-        elseif(array_key_exists("id_course",$_GET) && array_key_exists("id_acadsem",$_GET) && array_key_exists("type_division",$_GET)) {
+        elseif(array_key_exists("id",$_GET) && array_key_exists("id_acadsem",$_GET) && array_key_exists("type_division",$_GET)) {
 
           // get available from query string
-          $id_course = $_GET['id_course'];
+          $id = $_GET['id'];
           $id_acadsem = $_GET['id_acadsem'];
           $type_division = $_GET['type_division'];
           /*
@@ -460,8 +460,8 @@
                 try {
                   // ADD AUTH TO QUERY
                   // create db query
-                  $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str from scheduler where id_course=:id_course and id_acadsem=:id_acadsem and type_division=:type_division');
-                  $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+                  $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str, learn_sem from scheduler where id=:id and id_acadsem=:id_acadsem and type_division=:type_division');
+                  $query->bindParam(':id', $id, PDO::PARAM_INT);
                   $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
                   $query->bindParam(':type_division', $type_division, PDO::PARAM_STR);
               		$query->execute();
