@@ -339,6 +339,174 @@
 
     }
 
+    elseif(array_key_exists("id_course",$_GET) && array_key_exists("id_acadsem",$_GET)) {
+
+      // get available from query string
+      $id_course = $_GET['id_course'];
+      $id_acadsem = $_GET['id_acadsem'];
+      // get task id from query string
+
+      //check to see if task id in query string is not empty and is number, if not return json error
+      if($id_course == '' ) {
+        $response = new Response();
+        $response->setHttpStatusCode(400);
+        $response->setSuccess(false);
+        $response->addMessage("course ID cannot be blank or must be numeric");
+        $response->send();
+        exit;
+      }
+
+      if($_SERVER['REQUEST_METHOD'] === 'PATCH') {
+        // update task
+        try {
+          // check request's content type header is JSON
+          if($_SERVER['CONTENT_TYPE'] !== 'application/json') {
+            // set up response for unsuccessful request
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("Content Type header not set to JSON");
+            $response->send();
+            exit;
+          }
+
+          // get PATCH request body as the PATCHed data will be JSON format
+          $rawPatchData = file_get_contents('php://input');
+
+          if(!$jsonData = json_decode($rawPatchData)) {
+            // set up response for unsuccessful request
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("Request body is not valid JSON");
+            $response->send();
+            exit;
+          }
+
+
+          // ADD AUTH TO QUERY
+          // create db query to get task from database to update - use master db
+          $query = $writeDB->prepare('SELECT id, id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice from course_this_year where id_course = :id_course and id_acadsem = :id_acadsem');
+          $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          $query->execute();
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // make sure that the task exists for a given task id
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("No task found to update");
+            $response->send();
+            exit;
+          }
+
+          // for each row returned - should be just one
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new task object
+            $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
+
+            // create task and store in array for return in json data
+            $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();
+          }
+
+          // ADD AUTH TO QUERY
+          // create the query string including any query fields
+          // prepare the query
+          $query = $writeDB->prepare('UPDATE course_this_year set count_div_lab = :count_div_lab where id_course = :id_course and id_acadsem = :id_acadsem');
+
+          $now = $row['count_div_lab'] - 1;
+          // bind the task id provided in the query string
+          $query->bindParam(':count_div_lab', $now, PDO::PARAM_INT);
+          $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          // bind the user id returned
+          // run the query
+          $query->execute();
+
+          // get affected row count
+          $rowCount = $query->rowCount();
+
+          // check if row was actually updated, could be that the given values are the same as the stored values
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("Course not updated - given values may be the same as the stored values");
+            $response->send();
+            exit;
+          }
+          // ADD AUTH TO QUERY
+          // create db query to return the newly edited task - connect to master database
+          $query = $writeDB->prepare('SELECT id, id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice from course_this_year where id_course = :id_course and id_acadsem = :id_acadsem');
+          $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          $query->execute();
+
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // check if task was found
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("No course found");
+            $response->send();
+            exit;
+          }
+          // create task array to store returned tasks
+          $coursethisyearArray = array();
+
+          // for each row returned
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new task object for each row
+            $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
+
+            // create AcadSem and store in array for return in json data
+            $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();
+          }
+          // bundle tasks and rows returned into an array to return in the json data
+          $returnData = array();
+          $returnData['rows_returned'] = $rowCount;
+          $returnData['coursethisyears'] = $coursethisyearArray;
+          //print_r($room_availArray);
+
+          // set up response for successful return
+          $response = new Response();
+          $response->setHttpStatusCode(200);
+          $response->setSuccess(true);
+          $response->addMessage("Room_avail updated");
+          $response->setData($returnData);
+          $response->send();
+          exit;
+        }
+        catch(Course_this_yearException $ex) {
+          $response = new Response();
+          $response->setHttpStatusCode(400);
+          $response->setSuccess(false);
+          $response->addMessage($ex->getMessage());
+          $response->send();
+          exit;
+        }
+        // if error with sql query return a json error
+        catch(PDOException $ex) {
+          error_log("Database Query Error: ".$ex, 0);
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage("Failed to update task - check your data for errors");
+          $response->send();
+          exit;
+        }
+      }
+    }
+
     elseif (array_key_exists("id_course",$_GET)) {
       // get task id from query string
       $id_course = $_GET['id_course'];
