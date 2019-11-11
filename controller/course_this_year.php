@@ -383,6 +383,44 @@
             exit;
           }
 
+          $count_div_theory = false;
+          $count_div_lab = false;
+          $count_div_practice = false;
+
+          $queryFields = "";
+
+          // check if title exists in PATCH
+          if(isset($jsonData->count_div_theory)) {
+            // set title field updated to true
+            $count_div_theory_updated = true;
+            // add title field to query field string
+            $queryFields .= "count_div_theory = :count_div_theory, ";
+          }
+
+          // check if title exists in PATCH
+          if(isset($jsonData->count_div_lab)) {
+            // set title field updated to true
+            $count_div_lab_updated = true;
+            // add title field to query field string
+            $queryFields .= "count_div_lab = :count_div_lab, ";
+          }
+
+          // check if title exists in PATCH
+          if(isset($jsonData->count_div_practice)) {
+            // set title field updated to true
+            $count_div_practice_updated = true;
+            // add title field to query field string
+            $queryFields .= "count_div_practice = :count_div_practice, ";
+          }
+
+          if($count_div_theory_updated === false && $count_div_lab_updated === false && $count_div_practice_updated === false) {
+                  $response = new Response();
+                  $response->setHttpStatusCode(400);
+                  $response->setSuccess(false);
+                  $response->addMessage("No course fields provided");
+                  $response->send();
+                  exit;
+                }
 
           // ADD AUTH TO QUERY
           // create db query to get task from database to update - use master db
@@ -408,23 +446,48 @@
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new task object
             $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
-
             // create task and store in array for return in json data
-            $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();
           }
 
           // ADD AUTH TO QUERY
           // create the query string including any query fields
-          // prepare the query
-          $query = $writeDB->prepare('UPDATE course_this_year set count_div_lab = :count_div_lab where id_course = :id_course and id_acadsem = :id_acadsem');
+          $queryString = "UPDATE course_this_year set '.$queryFields.' where id_course = :id_course and id_acadsem = :id_acadsem";
+                // prepare the query
+          $query = $writeDB->prepare($queryString);
 
-          $now = $row['count_div_lab'] - 1;
-          // bind the task id provided in the query string
-          $query->bindParam(':count_div_lab', $now, PDO::PARAM_INT);
-          $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
-          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
-          // bind the user id returned
-          // run the query
+      // if title has been provided
+      if($count_div_theory_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $coursethisyear->setCountDivTheory($jsonData->count_div_theory);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_theory = $coursethisyear->getCountDivTheory();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':count_div_theory', $up_theory, PDO::PARAM_INT);
+      }
+
+        // if title has been provided
+        if($count_div_lab_updated === true) {
+          // set task object title to given value (checks for valid input)
+          $coursethisyear->setCountLabTheory($jsonData->count_lab_theory);
+          // get the value back as the object could be handling the return of the value differently to
+          // what was provided
+          $up_lab = $coursethisyear->getCountLabTheory();
+          // bind the parameter of the new value from the object to the query (prevents SQL injection)
+          $query->bindParam(':count_lab_theory', $up_lab, PDO::PARAM_INT);
+        }
+
+          // if title has been provided
+          if($count_div_practice_updated === true) {
+          // set task object title to given value (checks for valid input)
+          $coursethisyear->setCountPracticeTheory($jsonData->count_div_practice);
+          // get the value back as the object could be handling the return of the value differently to
+          // what was provided
+          $up_practice = $coursethisyear->getCountPracticeTheory();
+          // bind the parameter of the new value from the object to the query (prevents SQL injection)
+          $query->bindParam(':count_div_practice', $up_practice, PDO::PARAM_INT);
+          }
+
           $query->execute();
 
           // get affected row count
