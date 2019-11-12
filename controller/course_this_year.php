@@ -413,6 +413,9 @@
             $queryFields .= "count_div_practice = :count_div_practice, ";
           }
 
+          $queryFields = rtrim($queryFields, ", ");
+
+
           if($count_div_theory_updated === false && $count_div_lab_updated === false && $count_div_practice_updated === false) {
                   $response = new Response();
                   $response->setHttpStatusCode(400);
