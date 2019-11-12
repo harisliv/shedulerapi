@@ -347,7 +347,7 @@
       // get task id from query string
 
       //check to see if task id in query string is not empty and is number, if not return json error
-      if($id_course == '' ) {
+      if($id_course == '' || $id_acadsem == '') {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
@@ -383,9 +383,9 @@
             exit;
           }
 
-          $count_div_theory = false;
-          $count_div_lab = false;
-          $count_div_practice = false;
+          $count_div_theory_updated = false;
+          $count_div_lab_updated = false;
+          $count_div_practice_updated = false;
 
           $queryFields = "";
 
@@ -469,12 +469,12 @@
         // if title has been provided
         if($count_div_lab_updated === true) {
           // set task object title to given value (checks for valid input)
-          $coursethisyear->setCountLabTheory($jsonData->count_lab_theory);
+          $coursethisyear->setCountDivLab($jsonData->count_div_lab);
           // get the value back as the object could be handling the return of the value differently to
           // what was provided
-          $up_lab = $coursethisyear->getCountLabTheory();
+          $up_lab = $coursethisyear->getCountDivLab();
           // bind the parameter of the new value from the object to the query (prevents SQL injection)
-          $query->bindParam(':count_lab_theory', $up_lab, PDO::PARAM_INT);
+          $query->bindParam(':count_div_lab', $up_lab, PDO::PARAM_INT);
         }
 
           // if title has been provided
@@ -487,6 +487,9 @@
           // bind the parameter of the new value from the object to the query (prevents SQL injection)
           $query->bindParam(':count_div_practice', $up_practice, PDO::PARAM_INT);
           }
+
+          $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
 
           $query->execute();
 
