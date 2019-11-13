@@ -356,7 +356,80 @@
         exit;
       }
 
-      if($_SERVER['REQUEST_METHOD'] === 'PATCH') {
+      if($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // attempt to query the database
+        try {
+          // create db query
+          // ADD AUTH TO QUERY
+          $query = $readDB->prepare('SELECT id, id_course, name, learn_sem, id_responsible_prof, id_acadsem, count_div_theory, count_div_lab, count_div_practice from course_this_year where id_course = :id_course and id_acadsem = :id_acadsem');
+          $query->bindParam(':id_course', $id_course, PDO::PARAM_STR);
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+          $query->execute();
+
+          // get row count
+          $rowCount = $query->rowCount();
+
+          // create task array to store returned task
+          $coursethisyearArray = array();
+
+          if($rowCount === 0) {
+            // set up response for unsuccessful return
+            $response = new Response();
+            $response->setHttpStatusCode(404);
+            $response->setSuccess(false);
+            $response->addMessage("Course not found");
+            $response->send();
+            exit;
+          }
+
+          // for each row returned
+          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            // create new task object for each row
+            $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
+
+            // create AcadSem and store in array for return in json data
+            $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();
+          }
+
+          // bundle tasks and rows returned into an array to return in the json data
+          $returnData = array();
+          $returnData['rows_returned'] = $rowCount;
+          $returnData['coursethisyears'] = $coursethisyearArray;
+
+
+          // for each row returned
+
+
+          // set up response for successful return
+          $response = new Response();
+          $response->setHttpStatusCode(200);
+          $response->setSuccess(true);
+          $response->toCache(true);
+          $response->setData($returnData);
+          $response->send();
+          exit;
+        }
+        // if error with sql query return a json error
+        catch(CourseException $ex) {
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage($ex->getMessage());
+          $response->send();
+          exit;
+        }
+        catch(PDOException $ex) {
+          error_log("Database Query Error: ".$ex, 0);
+          $response = new Response();
+          $response->setHttpStatusCode(500);
+          $response->setSuccess(false);
+          $response->addMessage("Failed to get task");
+          $response->send();
+          exit;
+        }
+      }
+
+      elseif($_SERVER['REQUEST_METHOD'] === 'PATCH') {
         // update task
         try {
           // check request's content type header is JSON
@@ -450,11 +523,13 @@
             // create new task object
             $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
             // create task and store in array for return in json data
+            $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();
+
           }
 
           // ADD AUTH TO QUERY
           // create the query string including any query fields
-          $queryString = "UPDATE course_this_year set '.$queryFields.' where id_course = :id_course and id_acadsem = :id_acadsem";
+          $queryString = "update course_this_year set ".$queryFields." where id_course = :id_course and id_acadsem = :id_acadsem";
                 // prepare the query
           $query = $writeDB->prepare($queryString);
 
