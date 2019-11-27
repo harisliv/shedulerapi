@@ -108,12 +108,12 @@ try {
   // within this if/elseif statement, it is important to get the correct order (if query string GET param is used in multiple routes)
 
   // check if taskid is in the url e.g. /tasks/1
-  if (array_key_exists("id",$_GET)) {
+  if (array_key_exists("course_id",$_GET)) {
     // get task id from query string
-    $id = $_GET['id'];
+    $course_id = $_GET['course_id'];
 
     //check to see if task id in query string is not empty and is number, if not return json error
-    if($id == '' ) {
+    if($course_id == '' ) {
       $response = new Response();
       $response->setHttpStatusCode(400);
       $response->setSuccess(false);
@@ -128,8 +128,8 @@ try {
       try {
         // create db query
         // ADD AUTH TO QUERY
-        $query = $readDB->prepare('SELECT id, course_id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where id = :id');
-        $query->bindParam(':id', $id, PDO::PARAM_INT);
+        $query = $readDB->prepare('SELECT id, course_id, name, curr, period, active, hours_theory, hours_lab, hours_practice from course_list where course_id = :course_id');
+        $query->bindParam(':course_id', $course_id, PDO::PARAM_STR);
         $query->execute();
 
         // get row count
