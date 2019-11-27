@@ -525,12 +525,11 @@
               }
             }
 
-            elseif(array_key_exists("id_course",$_GET) && array_key_exists("id_acadsem",$_GET) && array_key_exists("learn_sem",$_GET)) {
+            elseif(array_key_exists("id_course",$_GET) && array_key_exists("id_acadsem",$_GET)) {
 
               // get available from query string
               $id = $_GET['id_course'];
               $id_acadsem = $_GET['id_acadsem'];
-              $learn_sem = $_GET['learn_sem'];
               //$ls = $_GET['learn_sem'];
               /*
                   // check to see if available in query string is either Y or N
@@ -549,10 +548,9 @@
                     try {
                       // ADD AUTH TO QUERY
                       // create db query
-                      $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str, learn_sem from scheduler where id_course=:id_course and id_acadsem=:id_acadsem and learn_sem=:learn_sem');
+                      $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str, learn_sem from scheduler where id_course=:id_course and id_acadsem=:id_acadsem');
                       $query->bindParam(':id_course', $id, PDO::PARAM_STR);
                       $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
-                      $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
                       //$query->bindParam(':learn_sem', $ls, PDO::PARAM_STR);
                   		$query->execute();
 
@@ -614,6 +612,94 @@
                     exit;
                   }
                 }
+
+                elseif(array_key_exists("id_acadsem",$_GET) && array_key_exists("division_str",$_GET)) {
+
+                  // get available from query string
+                  $id_acadsem = $_GET['id_acadsem'];
+                  $division_str = $_GET['division_str'];
+                  //$ls = $_GET['learn_sem'];
+                  /*
+                      // check to see if available in query string is either Y or N
+                      if($id_acadsem == " " && $id_acadsem < 0) {
+                        $response = new Response();
+                        $response->setHttpStatusCode(400);
+                        $response->setSuccess(false);
+                        $response->addMessage("wrong acadsem");
+                        $response->send();
+                        exit;
+                      }
+                      */
+
+                      if($_SERVER['REQUEST_METHOD'] === 'GET') {
+                        // attempt to query the database
+                        try {
+                          // ADD AUTH TO QUERY
+                          // create db query
+                          $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str, learn_sem from scheduler where id_acadsem=:id_acadsem and division_str=:division_str');
+                          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+                          $query->bindParam(':division_str', $division_str, PDO::PARAM_STR);
+                          //$query->bindParam(':learn_sem', $ls, PDO::PARAM_STR);
+                      		$query->execute();
+
+                          // get row count
+                          $rowCount = $query->rowCount();
+
+                          // create task array to store returned tasks
+                          $schedulerArray = array();
+
+                          // for each row returned
+                          while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+                            // create new task object for each row
+                            $scheduler = new Scheduler($row['id'], $row['id_course'], $row['id_acadsem'], $row['type_division'], $row['lektiko_division'], $row['id_prof'], $row['id_room'], $row['id_ts'], $row['division_str'], $row['learn_sem']);
+
+                            // create task and store in array for return in json data
+                      	    $schedulerArray[] = $scheduler->returnSchedulerAsArray();
+                          }
+
+                          // bundle task and rows returned into an array to return in the json data
+                          $returnData = array();
+                          $returnData['rows_returned'] = $rowCount;
+                          $returnData['schedulers'] = $schedulerArray;
+
+                          // set up response for successful return
+                          $response = new Response();
+                          $response->setHttpStatusCode(200);
+                          $response->setSuccess(true);
+                          $response->toCache(true);
+                          $response->setData($returnData);
+                          $response->send();
+                          exit;
+                        }
+                        // if error with sql query return a json error
+                        catch(SchedulerException $ex) {
+                          $response = new Response();
+                          $response->setHttpStatusCode(500);
+                          $response->setSuccess(false);
+                          $response->addMessage($ex->getMessage());
+                          $response->send();
+                          exit;
+                        }
+                        catch(PDOException $ex) {
+                          error_log("Database Query Error: ".$ex, 0);
+                          $response = new Response();
+                          $response->setHttpStatusCode(500);
+                          $response->setSuccess(false);
+                          $response->addMessage("Failed to get task");
+                          $response->send();
+                          exit;
+                        }
+                      }
+                      // if any other request method apart from GET is used then return 405 method not allowed
+                      else {
+                        $response = new Response();
+                        $response->setHttpStatusCode(405);
+                        $response->setSuccess(false);
+                        $response->addMessage("Request method not allowed");
+                        $response->send();
+                        exit;
+                      }
+                    }
 
     else {
       $response = new Response();
