@@ -373,7 +373,7 @@
             try {
               // ADD AUTH TO QUERY
               // create db query
-              $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str from scheduler where id_acadsem=:id_acadsem and learn_sem=:learn_sem');
+              $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str, learn_sem from scheduler where id_acadsem=:id_acadsem and learn_sem=:learn_sem');
               $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
               $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
           		$query->execute();
