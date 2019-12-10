@@ -660,6 +660,27 @@
             exit;
           }
 
+          $available_updated = false;
+          $queryFields = "";
+
+          if(isset($jsonData->available)) {
+                  // set title field updated to true
+                  $available_updated = true;
+                  // add title field to query field string
+                  $queryFields .= "available = :available, ";
+                }
+
+                $queryFields = rtrim($queryFields, ", ");
+
+                if($available_updated === false) {
+                        $response = new Response();
+                        $response->setHttpStatusCode(400);
+                        $response->setSuccess(false);
+                        $response->addMessage("No room availability fields provided");
+                        $response->send();
+                        exit;
+                      }
+
 
           // ADD AUTH TO QUERY
           // create db query to get task from database to update - use master db
@@ -686,21 +707,38 @@
             $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available'], $row['learn_sem']);
 
             // create task and store in array for return in json data
-            $room_availArray[] = $room_avail->returnRoom_availAsArray();
+            //$room_availArray[] = $room_avail->returnRoom_availAsArray();
           }
 
           // ADD AUTH TO QUERY
           // create the query string including any query fields
           // prepare the query
-          $query = $writeDB->prepare('UPDATE room_availability set available = :available where id = :id');
 
-          $availableno = "N";
+          $queryString = "update room_availability set ".$queryFields." where id = :id";
+      // prepare the query
+          $query = $writeDB->prepare($queryString);
+
+          //$query = $writeDB->prepare('UPDATE room_availability set available = :available where id = :id');
+
+          //$availableno = "N";
           // bind the task id provided in the query string
           $query->bindParam(':id', $room_availid, PDO::PARAM_INT);
-          $query->bindParam(':available', $availableno, PDO::PARAM_STR);
+          //$query->bindParam(':available', $availableno, PDO::PARAM_STR);
           // bind the user id returned
           // run the query
-          $query->execute();
+
+          if($available_updated === true) {
+        // set task object title to given value (checks for valid input)
+        $room_avail->setAvailable($jsonData->available);
+        // get the value back as the object could be handling the return of the value differently to
+        // what was provided
+        $up_available = $room_avail->getAvailable();
+        // bind the parameter of the new value from the object to the query (prevents SQL injection)
+        $query->bindParam(':available', $up_available, PDO::PARAM_STR);
+      }
+
+      $query->execute();
+
 
           // get affected row count
           $rowCount = $query->rowCount();
@@ -730,7 +768,7 @@
             $response = new Response();
             $response->setHttpStatusCode(404);
             $response->setSuccess(false);
-            $response->addMessage("No course found");
+            $response->addMessage("No room avail found");
             $response->send();
             exit;
           }
@@ -749,7 +787,7 @@
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
           $returnData['rooms_avail'] = $room_availArray;
-          print_r($room_availArray);
+          //print_r($room_availArray);
 
           // set up response for successful return
           $response = new Response();

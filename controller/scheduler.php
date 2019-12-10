@@ -701,6 +701,74 @@
                       }
                     }
 
+                    elseif(array_key_exists("id",$_GET)) {
+
+                      // get available from query string
+                      $id = $_GET['id'];
+                      //$ls = $_GET['learn_sem'];
+                      /*
+                          // check to see if available in query string is either Y or N
+                          if($id_acadsem == " " && $id_acadsem < 0) {
+                            $response = new Response();
+                            $response->setHttpStatusCode(400);
+                            $response->setSuccess(false);
+                            $response->addMessage("wrong acadsem");
+                            $response->send();
+                            exit;
+                          }
+                          */
+                      // else if request if a DELETE e.g. delete task
+                      if($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+                        // attempt to query the database
+                        try {
+                          // ADD AUTH TO QUERY
+                          // create db query
+                          $query = $writeDB->prepare('delete from scheduler where id=:id');
+                          $query->bindParam(':id', $id, PDO::PARAM_INT);
+                          $query->execute();
+
+                          // get row count
+                          $rowCount = $query->rowCount();
+
+                          if($rowCount === 0) {
+                            // set up response for unsuccessful return
+                            $response = new Response();
+                            $response->setHttpStatusCode(404);
+                            $response->setSuccess(false);
+                            $response->addMessage("Scheduled timeslot not found");
+                            $response->send();
+                            exit;
+                          }
+                          // set up response for successful return
+                          $response = new Response();
+                          $response->setHttpStatusCode(200);
+                          $response->setSuccess(true);
+                          $response->addMessage("Scheduled timeslot deleted");
+                          $response->send();
+                          exit;
+                        }
+                        // if error with sql query return a json error
+                        catch(PDOException $ex) {
+                          $response = new Response();
+                          $response->setHttpStatusCode(500);
+                          $response->setSuccess(false);
+                          $response->addMessage("Failed to delete Scheduled timeslot");
+                          $response->send();
+                          exit;
+                        }
+                      }
+                          // if any other request method apart from GET is used then return 405 method not allowed
+                          else {
+                            $response = new Response();
+                            $response->setHttpStatusCode(405);
+                            $response->setSuccess(false);
+                            $response->addMessage("Request method not allowed");
+                            $response->send();
+                            exit;
+                          }
+                        }
+
+
     else {
       $response = new Response();
       $response->setHttpStatusCode(405);
