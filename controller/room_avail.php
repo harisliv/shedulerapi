@@ -341,11 +341,12 @@
       //}
     }
 
-    elseif (array_key_exists("day",$_GET) && array_key_exists("start_time",$_GET) && array_key_exists("room_code",$_GET)) {
+    elseif (array_key_exists("day",$_GET) && array_key_exists("start_time",$_GET) && array_key_exists("room_code",$_GET) && array_key_exists("id_acadsem",$_GET)) {
       // get task id from query string
       $day = $_GET['day'];
       $start_time = $_GET['start_time'];
       $room_code = $_GET['room_code'];
+      $id_acadsem = $_GET['id_acadsem'];
 
 
 
@@ -368,9 +369,11 @@
         try {
           // create db query
           // ADD AUTH TO QUERY
-          $query = $readDB->prepare('SELECT id, start_time, day, id_acadsem from time_slots where start_time = :start_time and day = :day');
+          $query = $readDB->prepare('SELECT id, start_time, day, id_acadsem from time_slots where start_time = :start_time and day = :day and id_acadsem = :id_acadsem');
           $query->bindParam(':day', $day, PDO::PARAM_STR);
           $query->bindParam(':start_time', $start_time, PDO::PARAM_INT);
+          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+
       		$query->execute();
           //echo "reeeeeee :" . $room_code . "<br>";
           $query1 = $readDB->prepare('SELECT id, lektiko_room, room_code from room where room_code = :room_code');
@@ -391,10 +394,11 @@
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             //echo "room id after while: " . $roomid . "<br>";
             //echo "time_slot " . $row['id'] . "<br>";
-            $query_new = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id_room = :id_room and id_ts = :id_ts and available = :available');
+            $query_new = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id_room = :id_room and id_ts = :id_ts and id_acadsem = :id_acadsem');
             $query_new->bindParam(':id_room', $roomid, PDO::PARAM_INT);
             $query_new->bindParam(':id_ts', $row['id'], PDO::PARAM_INT);
-            $query_new->bindParam(':available', $availableyes, PDO::PARAM_STR);
+            $query_new->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+            //$query_new->bindParam(':available', $availableyes, PDO::PARAM_STR);
             $query_new->execute();
             $rowCount_new += $query_new->rowCount();
             //echo "rowcount " . $rowCount_new . "<br>";
@@ -404,7 +408,7 @@
               $response = new Response();
               $response->setHttpStatusCode(404);
               $response->setSuccess(false);
-              $response->addMessage("Task not found");
+              $response->addMessage("Room avail not found");
               $response->send();
               exit;
             }
