@@ -701,11 +701,12 @@
                       }
                     }
 
-                    elseif(array_key_exists("id_room",$_GET) && array_key_exists("id_ts",$_GET)) {
+                    elseif(array_key_exists("id_room",$_GET) && array_key_exists("id_ts",$_GET) && array_key_exists("id_acadsem",$_GET)) {
 
                       // get available from query string
                       $id_room = $_GET['id_room'];
                       $id_ts = $_GET['id_ts'];
+                      $id_acadsem = $_GET['id_acadsem'];
                       //$ls = $_GET['learn_sem'];
                       /*
                           // check to see if available in query string is either Y or N
@@ -724,7 +725,8 @@
                         try {
                           // ADD AUTH TO QUERY
                           // create db query
-                          $query = $writeDB->prepare('delete from scheduler where id_room=:id_room and id_ts=:id_ts');
+                          $query = $writeDB->prepare('delete from scheduler where id_acadsem =:id_acadsem and id_room=:id_room and id_ts=:id_ts');
+                          $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
                           $query->bindParam(':id_room', $id_room, PDO::PARAM_INT);
                           $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
                           $query->execute();
