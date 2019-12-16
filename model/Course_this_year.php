@@ -86,7 +86,7 @@
     }
 
     public function setCountDivTheory($count_div_theory) {
-      if(($count_div_theory !== null) && (!is_numeric($count_div_theory) || $count_div_theory < 0 || $count_div_theory > 9 ))
+      if(($count_div_theory !== null) && (!is_numeric($count_div_theory) || $count_div_theory < 0 || $count_div_theory > 15 ))
       {
         throw new Course_this_yearException("HOURS THEORY error");
       }
@@ -94,15 +94,15 @@
     }
 
     public function setCountDivLab($count_div_lab) {
-      if(($count_div_lab !== null) && (!is_numeric($count_div_lab) || $count_div_lab < 0 || $count_div_lab > 9)){
-        throw new Course_this_yearException("Course_this_year ID error");
+      if(($count_div_lab !== null) && (!is_numeric($count_div_lab) || $count_div_lab < 0 || $count_div_lab > 15)){
+        throw new Course_this_yearException("HOURS LAB error");
       }
         $this->_count_div_lab = $count_div_lab;
     }
 
     public function setCountDivPractice($count_div_practice) {
-      if(($count_div_practice !== null) && (!is_numeric($count_div_practice) || $count_div_practice < 0 || $count_div_practice > 9)){
-        throw new Course_this_yearException("Course_this_year ID error");
+      if(($count_div_practice !== null) && (!is_numeric($count_div_practice) || $count_div_practice < 0 || $count_div_practice > 15)){
+        throw new Course_this_yearException("HOURS PRACTICE ID error");
       }
         $this->_count_div_practice = $count_div_practice;
     }
