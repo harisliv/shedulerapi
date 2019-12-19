@@ -462,11 +462,12 @@
       }
 }
 
-    elseif(array_key_exists("id_acadsem",$_GET) && array_key_exists("available",$_GET) && array_key_exists("learn_sem",$_GET)) {
+    elseif(array_key_exists("id_room",$_GET) && array_key_exists("id_ts",$_GET) && array_key_exists("id_acadsem",$_GET) && array_key_exists("learn_sem",$_GET)) {
 
       // get available from query string
+      $id_room = $_GET['id_room'];
+      $id_ts = $_GET['id_ts'];
       $id_acadsem = $_GET['id_acadsem'];
-      $available = $_GET['available'];
       $learn_sem = $_GET['learn_sem'];
 
       // check to see if available in query string is either Y or N
@@ -486,9 +487,10 @@
         try {
           // ADD AUTH TO QUERY
           // create db query
-          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id_acadsem = :id_acadsem and available = :available and learn_sem = :learn_sem');
+          $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id_room =:id_room and id_ts =:id_ts and id_acadsem = :id_acadsem and learn_sem = :learn_sem');
+          $query->bindParam(':id_room', $id_room, PDO::PARAM_INT);
+          $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
           $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
-          $query->bindParam(':available', $available, PDO::PARAM_STR);
           $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
       		$query->execute();
 
@@ -550,6 +552,182 @@
         exit;
       }
     }
+
+        elseif(array_key_exists("id_acadsem",$_GET) && array_key_exists("learn_sem",$_GET)) {
+
+          // get available from query string
+          $id_acadsem = $_GET['id_acadsem'];
+          $learn_sem = $_GET['learn_sem'];
+
+          // check to see if available in query string is either Y or N
+          /*
+          if($available !== "Y" && $available !== "N") {
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("available filter must be Y or N");
+            $response->send();
+            exit;
+          }
+          */
+
+          if($_SERVER['REQUEST_METHOD'] === 'GET') {
+            // attempt to query the database
+            try {
+              // ADD AUTH TO QUERY
+              // create db query
+              $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id_acadsem = :id_acadsem and learn_sem = :learn_sem');
+              $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+              $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
+          		$query->execute();
+
+              // get row count
+              $rowCount = $query->rowCount();
+
+              // create task array to store returned tasks
+              $room_availArray = array();
+
+              // for each row returned
+              while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+                // create new task object for each row
+                $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available'], $row['learn_sem']);
+
+                // create task and store in array for return in json data
+          	    $room_availArray[] = $room_avail->returnRoom_availAsArray();
+              }
+
+              // bundle task and rows returned into an array to return in the json data
+              $returnData = array();
+              $returnData['rows_returned'] = $rowCount;
+              $returnData['rooms_avail'] = $room_availArray;
+
+              // set up response for successful return
+              $response = new Response();
+              $response->setHttpStatusCode(200);
+              $response->setSuccess(true);
+              $response->toCache(true);
+              $response->setData($returnData);
+              $response->send();
+              exit;
+            }
+            // if error with sql query return a json error
+            catch(Room_availException $ex) {
+              $response = new Response();
+              $response->setHttpStatusCode(500);
+              $response->setSuccess(false);
+              $response->addMessage($ex->getMessage());
+              $response->send();
+              exit;
+            }
+            catch(PDOException $ex) {
+              error_log("Database Query Error: ".$ex, 0);
+              $response = new Response();
+              $response->setHttpStatusCode(500);
+              $response->setSuccess(false);
+              $response->addMessage("Failed to get task");
+              $response->send();
+              exit;
+            }
+          }
+          // if any other request method apart from GET is used then return 405 method not allowed
+          else {
+            $response = new Response();
+            $response->setHttpStatusCode(405);
+            $response->setSuccess(false);
+            $response->addMessage("Request method not allowed");
+            $response->send();
+            exit;
+          }
+        }
+
+        elseif(array_key_exists("id_acadsem",$_GET) && array_key_exists("available",$_GET) && array_key_exists("learn_sem",$_GET)) {
+
+          // get available from query string
+          $id_acadsem = $_GET['id_acadsem'];
+          $available = $_GET['available'];
+          $learn_sem = $_GET['learn_sem'];
+
+          // check to see if available in query string is either Y or N
+          /*
+          if($available !== "Y" && $available !== "N") {
+            $response = new Response();
+            $response->setHttpStatusCode(400);
+            $response->setSuccess(false);
+            $response->addMessage("available filter must be Y or N");
+            $response->send();
+            exit;
+          }
+          */
+
+          if($_SERVER['REQUEST_METHOD'] === 'GET') {
+            // attempt to query the database
+            try {
+              // ADD AUTH TO QUERY
+              // create db query
+              $query = $readDB->prepare('SELECT id, id_room, id_ts, id_acadsem, available, learn_sem from room_availability where id_acadsem = :id_acadsem and available = :available and learn_sem = :learn_sem');
+              $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+              $query->bindParam(':available', $available, PDO::PARAM_STR);
+              $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
+          		$query->execute();
+
+              // get row count
+              $rowCount = $query->rowCount();
+
+              // create task array to store returned tasks
+              $room_availArray = array();
+
+              // for each row returned
+              while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+                // create new task object for each row
+                $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available'], $row['learn_sem']);
+
+                // create task and store in array for return in json data
+          	    $room_availArray[] = $room_avail->returnRoom_availAsArray();
+              }
+
+              // bundle task and rows returned into an array to return in the json data
+              $returnData = array();
+              $returnData['rows_returned'] = $rowCount;
+              $returnData['rooms_avail'] = $room_availArray;
+
+              // set up response for successful return
+              $response = new Response();
+              $response->setHttpStatusCode(200);
+              $response->setSuccess(true);
+              $response->toCache(true);
+              $response->setData($returnData);
+              $response->send();
+              exit;
+            }
+            // if error with sql query return a json error
+            catch(Room_availException $ex) {
+              $response = new Response();
+              $response->setHttpStatusCode(500);
+              $response->setSuccess(false);
+              $response->addMessage($ex->getMessage());
+              $response->send();
+              exit;
+            }
+            catch(PDOException $ex) {
+              error_log("Database Query Error: ".$ex, 0);
+              $response = new Response();
+              $response->setHttpStatusCode(500);
+              $response->setSuccess(false);
+              $response->addMessage("Failed to get task");
+              $response->send();
+              exit;
+            }
+          }
+          // if any other request method apart from GET is used then return 405 method not allowed
+          else {
+            $response = new Response();
+            $response->setHttpStatusCode(405);
+            $response->setSuccess(false);
+            $response->addMessage("Request method not allowed");
+            $response->send();
+            exit;
+          }
+        }
 
     elseif (array_key_exists("id",$_GET)) {
       // get task id from query string
