@@ -836,12 +836,11 @@
                       }
                     }
 
-                        elseif(array_key_exists("id_ts",$_GET) && array_key_exists("id_acadsem",$_GET) && array_key_exists("learn_sem",$_GET)) {
+                        elseif(array_key_exists("id_ts",$_GET) && array_key_exists("id_acadsem",$_GET)) {
 
                           // get available from query string
                           $id_ts = $_GET['id_ts'];
                           $id_acadsem = $_GET['id_acadsem'];
-                          $learn_sem = $_GET['learn_sem'];
                           //$ls = $_GET['learn_sem'];
                           /*
                               // check to see if available in query string is either Y or N
@@ -860,10 +859,10 @@
                                 try {
                                   // ADD AUTH TO QUERY
                                   // create db query
-                                  $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str, learn_sem from scheduler where id_acadsem=:id_acadsem and id_ts=:id_ts and learn_sem=:learn_sem');
+                                  $query = $readDB->prepare('SELECT id, id_course, id_acadsem, type_division, lektiko_division, id_prof, id_room, id_ts, division_str, learn_sem from scheduler where id_acadsem=:id_acadsem and id_ts=:id_ts');
                                   $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
                                   $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
-                                  $query->bindParam(':learn_sem', $learn_sem, PDO::PARAM_STR);
+                                  //$query->bindParam(':learn_sem', $ls, PDO::PARAM_STR);
                               		$query->execute();
 
                                   // get row count
@@ -915,7 +914,46 @@
                                 }
                               }
                           // else if request if a DELETE e.g. delete task
-                          
+                          elseif($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+                            // attempt to query the database
+                            try {
+                              // ADD AUTH TO QUERY
+                              // create db query
+                              $query = $writeDB->prepare('delete from scheduler where id_acadsem =:id_acadsem and id_ts=:id_ts');
+                              $query->bindParam(':id_acadsem', $id_acadsem, PDO::PARAM_INT);
+                              $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
+                              $query->execute();
+
+                              // get row count
+                              $rowCount = $query->rowCount();
+
+                              if($rowCount === 0) {
+                                // set up response for unsuccessful return
+                                $response = new Response();
+                                $response->setHttpStatusCode(404);
+                                $response->setSuccess(false);
+                                $response->addMessage("Scheduled timeslot not found(ts_id)");
+                                $response->send();
+                                exit;
+                              }
+                              // set up response for successful return
+                              $response = new Response();
+                              $response->setHttpStatusCode(200);
+                              $response->setSuccess(true);
+                              $response->addMessage("Scheduled timeslot (ts_id) deleted");
+                              $response->send();
+                              exit;
+                            }
+                            // if error with sql query return a json error
+                            catch(PDOException $ex) {
+                              $response = new Response();
+                              $response->setHttpStatusCode(500);
+                              $response->setSuccess(false);
+                              $response->addMessage("Failed to delete Scheduled timeslot");
+                              $response->send();
+                              exit;
+                            }
+                          }
                               // if any other request method apart from GET is used then return 405 method not allowed
                               else {
                                 $response = new Response();
