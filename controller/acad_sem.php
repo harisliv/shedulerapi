@@ -46,7 +46,7 @@
   // attempt to query the database to check token details - use write connection as it needs to be synchronous for token
   try {
     // create db query to check access token is equal to the one provided
-    $query = $writeDB->prepare('select userid, accesstokenexpiry, useractive, loginattempts from tblsessions, tblusers where tblsessions.userid = tblusers.id and accesstoken = :accesstoken');
+    $query = $writeDB->prepare('select userid, useractive, loginattempts from tblsessions, tblusers where tblsessions.userid = tblusers.id and accesstoken = :accesstoken');
     $query->bindParam(':accesstoken', $accesstoken, PDO::PARAM_STR);
     $query->execute();
 
@@ -67,7 +67,6 @@
     $row = $query->fetch(PDO::FETCH_ASSOC);
 
     // save returned details into variables
-    $returned_accesstokenexpiry = $row['accesstokenexpiry'];
     $returned_useractive = $row['useractive'];
     $returned_loginattempts = $row['loginattempts'];
 
@@ -91,15 +90,7 @@
       exit;
     }
 
-    // check if access token has expired
-    if(strtotime($returned_accesstokenexpiry) < time()) {
-      $response = new Response();
-      $response->setHttpStatusCode(401);
-      $response->setSuccess(false);
-      $response->addMessage("Access token has expired");
-      $response->send();
-      exit;
-    }
+    
 
     if (array_key_exists("id",$_GET)) {
       // get task id from query string
