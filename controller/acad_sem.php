@@ -90,23 +90,23 @@
       exit;
     }
 
-    
+
 
     if (array_key_exists("id",$_GET)) {
-      // get task id from query string
+      // get acad_sem id from query string
       $acadsemid = $_GET['id'];
 
-      //check to see if task id in query string is not empty and is number, if not return json error
+      //check to see if acad_sem id in query string is not empty and is number, if not return json error
       if($acadsemid == '' ) {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
-        $response->addMessage("Room ID cannot be blank or must be numeric");
+        $response->addMessage("Acad sem ID cannot be blank or must be numeric");
         $response->send();
         exit;
       }
 
-      // if request is a GET, e.g. get task
+      // if request is a GET, e.g. get acad_sem
       if($_SERVER['REQUEST_METHOD'] === 'GET') {
         // attempt to query the database
         try {
@@ -119,7 +119,7 @@
           // get row count
           $rowCount = $query->rowCount();
 
-          // create task array to store returned task
+          // create acad_sem array to store returned acad_sem
           $acadsemArray = array();
 
           if($rowCount === 0) {
@@ -127,21 +127,21 @@
             $response = new Response();
             $response->setHttpStatusCode(404);
             $response->setSuccess(false);
-            $response->addMessage("Room not found");
+            $response->addMessage("Acad sem not found");
             $response->send();
             exit;
           }
 
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-            // create new task object for each row
+            // create new acad_sem object for each row
             $acadsem = new AcadSem ($row['id'], $row['acad_year'], $row['type_sem'], $row['lektiko_acadsem'] );
 
-            // create task and store in array for return in json data
+            // create acad_sem and store in array for return in json data
             $acadsemArray[] = $acadsem->returnAcadSemAsArray();
           }
 
-          // bundle tasks and rows returned into an array to return in the json data
+          // bundle acad_sems and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
           $returnData['acadsems'] = $acadsemArray;
@@ -169,7 +169,7 @@
           $response = new Response();
           $response->setHttpStatusCode(500);
           $response->setSuccess(false);
-          $response->addMessage("Failed to get task");
+          $response->addMessage("Failed to get acad sem");
           $response->send();
           exit;
         }

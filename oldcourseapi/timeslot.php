@@ -91,10 +91,10 @@
     }
 
     if (array_key_exists("id",$_GET)) {
-      // get task id from query string
+      // get timeslot id from query string
       $timeslotid = $_GET['id'];
 
-      //check to see if task id in query string is not empty and is number, if not return json error
+      //check to see if timeslot id in query string is not empty and is number, if not return json error
       if($timeslotid == '' ) {
         $response = new Response();
         $response->setHttpStatusCode(400);
@@ -104,7 +104,7 @@
         exit;
       }
 
-      // if request is a GET, e.g. get task
+      // if request is a GET, e.g. get timeslot
       if($_SERVER['REQUEST_METHOD'] === 'GET') {
         // attempt to query the database
         try {
@@ -117,7 +117,7 @@
           // get row count
           $rowCount = $query->rowCount();
 
-          // create task array to store returned task
+          // create timeslot array to store returned timeslot
           $timeslotArray = array();
 
           if($rowCount === 0) {
@@ -132,14 +132,14 @@
 
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-            // create new task object for each row
+            // create new timeslot object for each row
             $timeslot = new TimeSlot($row['id'], $row['start_time'], $row['day'], $row['id_acadsem']);
 
-            // create task and store in array for return in json data
+            // create timeslot and store in array for return in json data
             $timeslotArray[] = $timeslot->returnTimeSlotAsArray();
           }
 
-          // bundle tasks and rows returned into an array to return in the json data
+          // bundle timeslots and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
           $returnData['timeslots'] = $timeslotArray;
@@ -175,10 +175,10 @@
     }
 
     elseif (array_key_exists("id_acadsem",$_GET)) {
-      // get task id from query string
+      // get timeslot id from query string
       $id_acadsem = $_GET['id_acadsem'];
 
-      //check to see if task id in query string is not empty and is number, if not return json error
+      //check to see if timeslot id in query string is not empty and is number, if not return json error
       if($id_acadsem == '' ) {
         $response = new Response();
         $response->setHttpStatusCode(400);
@@ -188,7 +188,7 @@
         exit;
       }
 
-      // if request is a GET, e.g. get task
+      // if request is a GET, e.g. get timeslot
       if($_SERVER['REQUEST_METHOD'] === 'GET') {
         // attempt to query the database
         try {
@@ -201,7 +201,7 @@
           // get row count
           $rowCount = $query->rowCount();
 
-          // create task array to store returned task
+          // create timeslot array to store returned timeslot
           $timeslotArray = array();
 
           if($rowCount === 0) {
@@ -216,14 +216,14 @@
 
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-            // create new task object for each row
+            // create new timeslot object for each row
             $timeslot = new TimeSlot($row['id'], $row['start_time'], $row['day'], $row['id_acadsem']);
 
-            // create task and store in array for return in json data
+            // create timeslot and store in array for return in json data
             $timeslotArray[] = $timeslot->returnTimeSlotAsArray();
           }
 
-          // bundle tasks and rows returned into an array to return in the json data
+          // bundle timeslots and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
           $returnData['timeslots'] = $timeslotArray;
