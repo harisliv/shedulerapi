@@ -196,8 +196,8 @@
 
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            
             // create new AcadSem object for each row
-            //echo "<br>" . $row['lektiko_AcadSem'];
             $acadsem = new AcadSem($row['id'], $row['acad_year'], $row['type_sem'], $row['lektiko_acadsem']);
 
             // create AcadSem and store in array for return in json data

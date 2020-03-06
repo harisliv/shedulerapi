@@ -92,7 +92,7 @@
 
     if(empty($_GET)) {
 
-      // if request is a GET e.g. get AcadSems
+      // if request is a GET e.g. get course_this_year
       if($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         // attempt to query the database
@@ -105,20 +105,20 @@
           // get row count
           $rowCount = $query->rowCount();
 
-          // create AcadSem array to store returned AcadSems
+          // create AcadSem array to store returned course_this_year
           $coursethisyearArray = array();
 
           // for each row returned
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-            // create new AcadSem object for each row
-            //echo "<br>" . $row['lektiko_AcadSem'];
+            // create new course_this_year object for each row
+
             $coursethisyear = new Course_this_year($row['id'], $row['id_course'], $row['name'], $row['learn_sem'], $row['id_responsible_prof'], $row['id_acadsem'], $row['count_div_theory'], $row['count_div_lab'], $row['count_div_practice']);
 
-            // create AcadSem and store in array for return in json data
+            // create course_this_year and store in array for return in json data
             $coursethisyearArray[] = $coursethisyear->returnCourse_this_yearAsArray();
           }
 
-          // bundle AcadSems and rows returned into an array to return in the json data
+          // bundle course_this_year and rows returned into an array to return in the json data
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
           $returnData['coursethisyears'] = $coursethisyearArray;
@@ -219,8 +219,6 @@
           $response->setData($returnData);
           $response->send();
           exit;
-
-
 
         }
         // if error with sql query return a json error

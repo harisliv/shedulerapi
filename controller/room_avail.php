@@ -659,8 +659,6 @@
             // create new room_avail object
             $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
 
-            // create room_avail and store in array for return in json data
-            //$room_availArray[] = $room_avail->returnRoom_availAsArray();
           }
 
           // ADD AUTH TO QUERY
@@ -670,15 +668,7 @@
           $queryString = "update room_availability set ".$queryFields." where id = :id";
       // prepare the query
           $query = $writeDB->prepare($queryString);
-
-          //$query = $writeDB->prepare('UPDATE room_availability set available = :available where id = :id');
-
-          //$availableno = "N";
-          // bind the room_avail id provided in the query string
           $query->bindParam(':id', $room_availid, PDO::PARAM_INT);
-          //$query->bindParam(':available', $availableno, PDO::PARAM_STR);
-          // bind the user id returned
-          // run the query
 
           if($available_updated === true) {
         // set room_avail object title to given value (checks for valid input)
@@ -740,7 +730,6 @@
           $returnData = array();
           $returnData['rows_returned'] = $rowCount;
           $returnData['rooms_avail'] = $room_availArray;
-          //print_r($room_availArray);
 
           // set up response for successful return
           $response = new Response();
@@ -860,9 +849,6 @@
           while($row = $query->fetch(PDO::FETCH_ASSOC)) {
             // create new room_avail object
             $room_avail = new Room_avail($row['id'], $row['id_room'], $row['id_ts'], $row['id_acadsem'], $row['available']);
-
-            // create room_avail and store in array for return in json data
-            //$room_availArray[] = $room_avail->returnRoom_availAsArray();
           }
 
           // ADD AUTH TO QUERY
@@ -872,15 +858,7 @@
           $queryString = "update room_availability set ".$queryFields." where id_ts = :id_ts";
       // prepare the query
           $query = $writeDB->prepare($queryString);
-
-          //$query = $writeDB->prepare('UPDATE room_availability set available = :available where id = :id');
-
-          //$availableno = "N";
-          // bind the room_avail id provided in the query string
           $query->bindParam(':id_ts', $id_ts, PDO::PARAM_INT);
-          //$query->bindParam(':available', $availableno, PDO::PARAM_STR);
-          // bind the user id returned
-          // run the query
 
           if($available_updated === true) {
         // set room_avail object title to given value (checks for valid input)
