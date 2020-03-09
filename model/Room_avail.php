@@ -34,7 +34,7 @@
 
       public function setID($id) {
         if(($id !== null) && (!is_numeric($id) || $id < 0)){
-          throw new Room_availException("Room_avail availability ID error");
+          throw new Room_availException("Room_avail ID error");
         }
           $this->_id = $id;
       }
@@ -42,28 +42,28 @@
       public function setIdRoom($id_room) {
         if(($id_room !== null) && (!is_numeric($id_room) || $id_room < 0))
         {
-          throw new Room_availException("Room_avail ID error");
+          throw new Room_availException("Room_avail id_room error");
         }
           $this->_id_room = $id_room;
       }
 
       public function setIdTs($id_ts) {
         if(($id_ts !== null) && (!is_numeric($id_ts) || $id_ts < 0)){
-          throw new Room_availException("Time Slot ID error");
+          throw new Room_availException("Room_avail id_ts error");
         }
           $this->_id_ts = $id_ts;
       }
 
       public function setIdAcadsem($id_acadsem) {
         if(($id_acadsem !== null) && (!is_numeric($id_acadsem) || $id_acadsem < 0)){
-          throw new Room_availException("Acad Sem ID error");
+          throw new Room_availException("Room_avail id_acadsem error");
         }
           $this->_id_acadsem = $id_acadsem;
       }
 
       public function setAvailable($available) {
             if(strtoupper($available) !== 'Y' && strtoupper($available) !== 'N'){
-              throw new Room_availException("Room_avail available must by X or E");
+              throw new Room_availException("Room_avail available error");
             }
             $this->_available=$available;
           }

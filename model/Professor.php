@@ -29,28 +29,28 @@
 
       public function setID($id) {
         if(($id !== null) && (!is_numeric($id) || $id < 0)){
-          throw new ProfessorException("Professor availability ID error");
+          throw new ProfessorException("Professor ID error");
         }
           $this->_id = $id;
       }
 
       public function setFullname($fullname) {
         if(strlen($fullname) < 0 || strlen($fullname) > 255){
-          throw new ProfessorException("_fullname error");
+          throw new ProfessorException("Professor fullname error");
         }
         $this->_fullname = $fullname;
     }
 
       public function setIdType($id_type) {
         if(strtoupper($id_type) !== 'MONIMOS' && strtoupper($id_type) !== 'ANAPLHRWTHS'){
-          throw new ProfessorException("id_type must by MONIMOS or ANAPLHRWTHS");
+          throw new ProfessorException("Professor id_type error");
         }
           $this->_id_type = $id_type;
       }
 
       public function setActiveProf($active_prof) {
         if(strtoupper($active_prof) !== 'N' && strtoupper($active_prof) !== 'Y'){
-          throw new ProfessorException("Professor availability ID error");
+          throw new ProfessorException("Professor active_prof error");
         }
           $this->_active_prof = $active_prof;
       }

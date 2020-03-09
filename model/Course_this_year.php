@@ -44,7 +44,7 @@
 
     public function setID($id) {
       if(($id !== null) && (!is_numeric($id) || $id < 0)){
-        throw new Course_this_yearException("AcadSem availability ID error");
+        throw new Course_this_yearException("Course_this_year id error");
       }
         $this->_id = $id;
     }
@@ -58,7 +58,7 @@
 
     public function setName($name) {
       if(strlen($name) < 0 || strlen($name) > 150){
-        throw new Course_this_yearException("Course Name error");
+        throw new Course_this_yearException("Course_this_year name error");
       }
       $this->_name=$name;
     }
@@ -66,21 +66,21 @@
 
     public function setLearnSem($learn_sem) {
       if(strtoupper($learn_sem) !== 'A' && strtoupper($learn_sem) !== 'B' && $learn_sem !== 'C' && $learn_sem !== 'D' && $learn_sem !== 'E' && $learn_sem !== 'F' && $learn_sem !== 'G'){
-        throw new Course_this_yearException("Course period must by Α or Β or Γ");
+        throw new Course_this_yearException("Course_this_year period error");
       }
       $this->_learn_sem=$learn_sem;
     }
 
     public function setIdResponsibleProf($id_responsible_prof) {
       if(strlen($id_responsible_prof) < 0 || strlen($id_responsible_prof) > 150){
-        throw new Course_this_yearException("id_responsible_prof Programma Spoudwn error");
+        throw new Course_this_yearException("Course_this_year id_responsible_prof error");
       }
       $this->_id_responsible_prof=$id_responsible_prof;
     }
 
     public function setIdAcadsem($id_acadsem) {
       if(($id_acadsem !== null) && (!is_numeric($id_acadsem) || $id_acadsem < 0)){
-        throw new Course_this_yearException("Course_this_year Programma Spoudwn error");
+        throw new Course_this_yearException("Course_this_year id_acadsem error");
       }
       $this->_id_acadsem=$id_acadsem;
     }
@@ -88,21 +88,21 @@
     public function setCountDivTheory($count_div_theory) {
       if(($count_div_theory !== null) && (!is_numeric($count_div_theory) || $count_div_theory < 0 || $count_div_theory > 15 ))
       {
-        throw new Course_this_yearException("HOURS THEORY error");
+        throw new Course_this_yearException("Course_this_year count_div_theory error");
       }
         $this->_count_div_theory = $count_div_theory;
     }
 
     public function setCountDivLab($count_div_lab) {
       if(($count_div_lab !== null) && (!is_numeric($count_div_lab) || $count_div_lab < 0 || $count_div_lab > 15)){
-        throw new Course_this_yearException("HOURS LAB error");
+        throw new Course_this_yearException("Course_this_year count_div_lab error");
       }
         $this->_count_div_lab = $count_div_lab;
     }
 
     public function setCountDivPractice($count_div_practice) {
       if(($count_div_practice !== null) && (!is_numeric($count_div_practice) || $count_div_practice < 0 || $count_div_practice > 15)){
-        throw new Course_this_yearException("HOURS PRACTICE ID error");
+        throw new Course_this_yearException("Course_this_year count_div_practice error");
       }
         $this->_count_div_practice = $count_div_practice;
     }

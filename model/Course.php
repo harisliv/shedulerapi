@@ -43,14 +43,14 @@
 
     public function setID($id) {
       if(($id !== null) && (!is_numeric($id) || $id < 0)){
-        throw new CourseException(" ID error");
+        throw new CourseException("Course id error");
       }
         $this->_id = $id;
     }
 
     public function setCourseID($course_id) {
       if(strlen($course_id) < 0 || strlen($course_id) > 150){
-        throw new CourseException("Course ID error");
+        throw new CourseException("Course course_id error");
       }
         $this->_course_id = $course_id;
     }
@@ -64,7 +64,7 @@
 
     public function setCurr($curr) {
       if(strlen($curr) < 0 || strlen($curr) > 50){
-        throw new CourseException("Course Programma Spoudwn error");
+        throw new CourseException("Course curr error");
       }
       $this->_curr=$curr;
     }
@@ -72,7 +72,7 @@
 
     public function setPeriod($period) {
       if(strtoupper($period) !== 'X' && strtoupper($period) !== 'E'&& $period !== '-'){
-        throw new CourseException("Course period must by X or E or 0");
+        throw new CourseException("Course period error");
       }
       $this->_period=$period;
     }
@@ -80,7 +80,7 @@
 
     public function setActive($active) {
       if(strtoupper($active) !== 'N' && strtoupper($active) !== 'Y' ){
-        throw new CourseException("Course active must by Y or N");
+        throw new CourseException("Course active error");
       }
       $this->_active=$active;
     }
@@ -88,21 +88,21 @@
     public function setHoursTheory($hours_theory) {
       if(($hours_theory !== null) && (!is_numeric($hours_theory) || $hours_theory < 0 || $hours_theory > 9 ))
       {
-        throw new CourseException("HOURS THEORY error");
+        throw new CourseException("Course hours_theory error");
       }
         $this->_hours_theory = $hours_theory;
     }
 
     public function setHoursLab($hours_lab) {
       if(($hours_lab !== null) && (!is_numeric($hours_lab) || $hours_lab < 0 || $hours_lab > 9)){
-        throw new CourseException("Course ID error");
+        throw new CourseException("Course hours_lab error");
       }
         $this->_hours_lab = $hours_lab;
     }
 
     public function setHoursPractice($hours_practice) {
       if(($hours_practice !== null) && (!is_numeric($hours_practice) || $hours_practice < 0 || $hours_practice > 9)){
-        throw new CourseException("Course ID error");
+        throw new CourseException("Course hours_practice error");
       }
         $this->_hours_practice = $hours_practice;
     }

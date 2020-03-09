@@ -26,21 +26,21 @@
 
       public function setID($id) {
         if(($id !== null) && (!is_numeric($id) || $id < 0)){
-          throw new RoomException("Room availability ID error");
+          throw new RoomException("Room id error");
         }
           $this->_id = $id;
       }
 
       public function setLektikoRoom($lektiko_room) {
         if(strlen($lektiko_room) < 0 || strlen($lektiko_room) > 255){
-          throw new RoomException("_lektiko_room error");
+          throw new RoomException("Room lektiko_room error");
         }
         $this->_lektiko_room = $lektiko_room;
     }
 
       public function setRoomCode($room_code) {
         if(strlen($room_code) < 0 || strlen($room_code) > 150){
-          throw new RoomException("Time Slot ID error");
+          throw new RoomException("Room room_code error");
         }
           $this->_room_code = $room_code;
       }
